@@ -1,4 +1,10 @@
 
+run:
+	@go run ./cmd/server/...
+
+run.agent:
+	@go run ./cmd/agent/...
+
 # Обновление кода автотестов
 tmpl.update:
 	@git fetch template && git checkout template/main .github
