@@ -41,5 +41,6 @@ func (h Handlers) UpdateMetricsHande(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("content-type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 }
