@@ -1,15 +1,15 @@
 package conf
 
-type Conf struct {
+type ServerConf struct {
 	addr string
 }
 
-func NewConf() *Conf {
-	return &Conf{
+func NewServerConf() *ServerConf {
+	return &ServerConf{
 		addr: ":8080",
 	}
 }
 
-func (c Conf) Addr() string {
+func (c ServerConf) Addr() string {
 	return c.addr
 }
