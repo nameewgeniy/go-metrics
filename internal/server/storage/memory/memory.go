@@ -2,6 +2,7 @@ package memory
 
 import (
 	"github.com/nameewgeniy/go-metrics/internal/server/storage"
+	"sync"
 )
 
 type Memory struct {
@@ -11,8 +12,8 @@ type Memory struct {
 func NewMemory() *Memory {
 	return &Memory{
 		s: &MemStorage{
-			gauge:   map[string]float64{},
-			counter: map[string]int64{},
+			gauge:   sync.Map{},
+			counter: sync.Map{},
 		},
 	}
 }

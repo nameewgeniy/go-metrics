@@ -31,7 +31,6 @@ func (h Handlers) UpdateMetricsHande(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
-
 	metricType, metricName, metricValue := parts[2], parts[3], parts[4]
 
 	err := h.m.Update(metricType, metricName, metricValue)
