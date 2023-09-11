@@ -4,9 +4,9 @@ type MetricsConfig struct {
 	PushAddress string
 }
 
-func NewMetricsConf() *MetricsConfig {
+func NewMetricsConf(pushAddress string) *MetricsConfig {
 	return &MetricsConfig{
-		PushAddress: "localhost:8080",
+		PushAddress: pushAddress,
 	}
 }
 

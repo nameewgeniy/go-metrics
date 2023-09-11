@@ -15,7 +15,7 @@ func main() {
 	metrics := service.NewMetrics(store)
 	handler := handlers.NewHandlers(metrics)
 
-	cnf := conf.NewServerConf()
+	cnf := conf.NewServerConf(":8080")
 	srv := server.NewServer(cnf, handler)
 
 	if err := srv.Listen(); err != nil {

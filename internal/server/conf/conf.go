@@ -4,9 +4,9 @@ type ServerConf struct {
 	addr string
 }
 
-func NewServerConf() *ServerConf {
+func NewServerConf(addr string) *ServerConf {
 	return &ServerConf{
-		addr: ":8080",
+		addr: addr,
 	}
 }
 

@@ -7,10 +7,10 @@ type AgentConfig struct {
 	ReportIntervalSec int
 }
 
-func NewAgentConf() *AgentConfig {
+func NewAgentConf(pollIntervalSec, reportIntervalSec int) *AgentConfig {
 	return &AgentConfig{
-		PollIntervalSec:   2,
-		ReportIntervalSec: 10,
+		PollIntervalSec:   pollIntervalSec,
+		ReportIntervalSec: reportIntervalSec,
 	}
 }
 

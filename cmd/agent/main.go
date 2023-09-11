@@ -9,10 +9,11 @@ import (
 
 func main() {
 
-	mcf := conf.NewMetricsConf()
-	rm := service.NewRuntimeMetrics(mcf)
+	mcf := conf.NewMetricsConf("localhost:8080")
+	snd := service.NewMetricSender()
+	rm := service.NewRuntimeMetrics(mcf, snd)
 
-	cf := conf.NewAgentConf()
+	cf := conf.NewAgentConf(2, 10)
 	a := agent.NewAgent(cf, rm)
 
 	if err := a.Do(); err != nil {

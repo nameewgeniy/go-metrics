@@ -1,12 +1,9 @@
 package service
 
 import (
-	"bytes"
-	"fmt"
 	"github.com/nameewgeniy/go-metrics/internal/agent"
 	"log"
 	"math/rand"
-	"net/http"
 	"reflect"
 	"runtime"
 	"sync"
@@ -29,17 +26,23 @@ type extMemStats struct {
 	mutex       sync.RWMutex
 }
 
+type MetricsSender interface {
+	SendMemStatsMetric(addr, metricType, metricName string, metricValue any) error
+}
+
 type RuntimeMetrics struct {
 	memStats *extMemStats
 	mt       *metricsTracked
 	cf       agent.MetricsConf
+	s        MetricsSender
 }
 
-func NewRuntimeMetrics(cf agent.MetricsConf) *RuntimeMetrics {
+func NewRuntimeMetrics(cf agent.MetricsConf, sender MetricsSender) *RuntimeMetrics {
 	return &RuntimeMetrics{
 		memStats: &extMemStats{
 			m: &runtime.MemStats{},
 		},
+		s: sender,
 		mt: &metricsTracked{
 			gauges: [26]string{
 				"Alloc",
@@ -89,7 +92,7 @@ func (m RuntimeMetrics) Push() {
 		// Проверяем, что свойство с таким именем существует
 		if fieldValue.IsValid() {
 			go func() {
-				err := m.sendMemStatsMetric(gaugeType, name, fieldValue)
+				err := m.s.SendMemStatsMetric(m.cf.PushAddr(), gaugeType, name, fieldValue)
 				if err != nil {
 					log.Print(err)
 				}
@@ -99,31 +102,18 @@ func (m RuntimeMetrics) Push() {
 
 	// Отправялем кастомные метрики не из пакета runtime
 	go func() {
-		err := m.sendMemStatsMetric(gaugeType, "RandomValue", m.memStats.RandomValue)
+		err := m.s.SendMemStatsMetric(m.cf.PushAddr(), gaugeType, "RandomValue", m.memStats.RandomValue)
 		if err != nil {
 			log.Print(err)
 		}
 	}()
 
 	go func() {
-		err := m.sendMemStatsMetric(counterType, "PollCount", m.memStats.PollCount)
+		err := m.s.SendMemStatsMetric(m.cf.PushAddr(), counterType, "PollCount", m.memStats.PollCount)
 		if err != nil {
 			log.Print(err)
 		}
 	}()
-}
-
-func (m RuntimeMetrics) sendMemStatsMetric(metricType, metricName string, metricValue any) error {
-	url := fmt.Sprintf("http://%s/update/%s/%s/%v", m.cf.PushAddr(), metricType, metricName, metricValue)
-
-	resp, err := http.Post(url, "text/plain", bytes.NewBuffer([]byte{}))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	return nil
 }
 
 func (m RuntimeMetrics) Sync() {

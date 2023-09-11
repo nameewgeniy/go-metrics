@@ -13,11 +13,11 @@ func TestHandlers_UpdateMetricsHande(t *testing.T) {
 		w http.ResponseWriter
 		r *http.Request
 	}
-	var tests []struct {
+	tests := []struct {
 		name   string
 		fields fields
 		args   args
-	}
+	}{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := Handlers{
