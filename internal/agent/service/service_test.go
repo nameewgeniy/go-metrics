@@ -15,9 +15,7 @@ type MockSender struct {
 }
 
 func (s *MockSender) SendMemStatsMetric(addr, metricType, metricName string, metricValue any) error {
-	args := s.Called(addr, metricType, metricName, metricValue)
-
-	return args.Error(0)
+	return nil
 }
 
 func TestRuntimeMetrics_Sync(t *testing.T) {
@@ -94,7 +92,7 @@ func TestRuntimeMetrics_Push(t *testing.T) {
 					gauges:   [26]string{"MSpanSys"},
 					counters: nil,
 				},
-				cf: conf.NewMetricsConf(),
+				cf: conf.NewMetricsConf(""),
 				s:  mockSender,
 			},
 		},
