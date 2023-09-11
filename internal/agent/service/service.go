@@ -91,7 +91,7 @@ func (m RuntimeMetrics) Push() {
 			go func() {
 				err := m.sendMemStatsMetric(gaugeType, name, fieldValue)
 				if err != nil {
-					// log.Print(err)
+					log.Print(err)
 				}
 			}()
 		}
@@ -116,10 +116,12 @@ func (m RuntimeMetrics) Push() {
 func (m RuntimeMetrics) sendMemStatsMetric(metricType, metricName string, metricValue any) error {
 	url := fmt.Sprintf("http://%s/update/%s/%s/%v", m.cf.PushAddr(), metricType, metricName, metricValue)
 
-	_, err := http.Post(url, "text/plain", bytes.NewBuffer([]byte{}))
+	resp, err := http.Post(url, "text/plain", bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return err
 	}
+
+	defer resp.Body.Close()
 
 	return nil
 }
