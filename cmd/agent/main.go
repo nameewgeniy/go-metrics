@@ -9,9 +9,10 @@ import (
 
 func main() {
 
-	cf := conf.NewAgentConf()
-	rm := service.NewRuntimeMetrics()
+	mcf := conf.NewMetricsConf()
+	rm := service.NewRuntimeMetrics(mcf)
 
+	cf := conf.NewAgentConf()
 	a := agent.NewAgent(cf, rm)
 
 	if err := a.Do(); err != nil {

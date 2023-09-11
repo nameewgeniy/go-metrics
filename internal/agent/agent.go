@@ -5,9 +5,8 @@ import (
 	"time"
 )
 
-type Conf interface {
-	PollInterval() time.Duration
-	ReportInterval() time.Duration
+type MetricsConf interface {
+	PushAddr() string
 }
 
 type Metrics interface {
@@ -15,12 +14,17 @@ type Metrics interface {
 	Push()
 }
 
+type AgentConf interface {
+	PollInterval() time.Duration
+	ReportInterval() time.Duration
+}
+
 type Agent struct {
-	cnf Conf
+	cnf AgentConf
 	m   Metrics
 }
 
-func NewAgent(c Conf, m Metrics) *Agent {
+func NewAgent(c AgentConf, m Metrics) *Agent {
 	return &Agent{
 		cnf: c,
 		m:   m,
