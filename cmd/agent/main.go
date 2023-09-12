@@ -9,14 +9,19 @@ import (
 
 func main() {
 
-	scf := conf.NewSenderConfig("localhost:8080")
+	f, err := parseFlags()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scf := conf.NewSenderConfig(f.pushAddress)
 	snd := service.NewMetricSender(scf)
 	rm := service.NewRuntimeMetrics(snd)
 
-	cf := conf.NewAgentConf(2, 10)
+	cf := conf.NewAgentConf(f.pollIntervalSec, f.reportIntervalSec)
 	a := agent.NewAgent(cf, rm)
 
-	if err := a.Do(); err != nil {
+	if err = a.Do(); err != nil {
 		log.Fatal(err)
 	}
 }

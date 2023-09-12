@@ -10,13 +10,18 @@ import (
 
 func main() {
 
+	f, err := parseFlags()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	store := memory.NewMemory()
 	handler := handlers.NewMuxHandlers(store)
 
-	cnf := conf.NewServerConf(":8080")
+	cnf := conf.NewServerConf(f.addr)
 	srv := server.NewServer(cnf, handler)
 
-	if err := srv.Listen(); err != nil {
+	if err = srv.Listen(); err != nil {
 		log.Fatal(err)
 	}
 }
