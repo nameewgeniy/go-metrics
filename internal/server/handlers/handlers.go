@@ -19,7 +19,7 @@ func NewHandlers(m Metrics) *Handlers {
 	}
 }
 
-func (h Handlers) UpdateMetricsHande(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -40,6 +40,6 @@ func (h Handlers) UpdateMetricsHande(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("content-type", "text/plain")
+	w.Header().Set("content-type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 }

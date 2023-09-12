@@ -1,22 +1,27 @@
 package service
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/agent"
 	"log"
 	"math/rand"
-	"reflect"
 	"runtime"
 	"sync"
 	"time"
 )
 
-const gaugeType = "gauge"
-const counterType = "counter"
+const (
+	counterType = "counter"
+	gaugeType   = "gauge"
+)
+
+type MetricsSender interface {
+	SendMemStatsMetric(metricType, metricName, metricValue string) error
+}
 
 // Метрки, которые мы будем отправлять из пакета runtime
 type metricsTracked struct {
-	gauges   [26]string
-	counters []string
+	mType string
+	name  string
+	value string
 }
 
 type extMemStats struct {
@@ -26,55 +31,17 @@ type extMemStats struct {
 	mutex       sync.RWMutex
 }
 
-type MetricsSender interface {
-	SendMemStatsMetric(addr, metricType, metricName string, metricValue any) error
-}
-
 type RuntimeMetrics struct {
 	memStats *extMemStats
-	mt       *metricsTracked
-	cf       agent.MetricsConf
 	s        MetricsSender
 }
 
-func NewRuntimeMetrics(cf agent.MetricsConf, sender MetricsSender) *RuntimeMetrics {
+func NewRuntimeMetrics(sender MetricsSender) *RuntimeMetrics {
 	return &RuntimeMetrics{
 		memStats: &extMemStats{
 			m: &runtime.MemStats{},
 		},
 		s: sender,
-		mt: &metricsTracked{
-			gauges: [26]string{
-				"Alloc",
-				"BuckHashSys",
-				"Frees",
-				"GCCPUFraction",
-				"Mallocs",
-				"MSpanSys",
-				"MSpanInuse",
-				"MCacheSys",
-				"MCacheInuse",
-				"Lookups",
-				"LastGC",
-				"HeapSys",
-				"HeapReleased",
-				"HeapObjects",
-				"HeapInuse",
-				"HeapIdle",
-				"HeapAlloc",
-				"GCSys",
-				"NumForcedGC",
-				"NumGC",
-				"OtherSys",
-				"PauseTotalNs",
-				"StackInuse",
-				"StackSys",
-				"Sys",
-				"TotalAlloc",
-			},
-			counters: nil,
-		},
-		cf: cf,
 	}
 }
 
@@ -83,37 +50,161 @@ func (m RuntimeMetrics) Push() {
 	m.memStats.mutex.RLock()
 	defer m.memStats.mutex.RUnlock()
 
-	for _, v := range m.mt.gauges {
-		name := v
+	for _, v := range m.MetricsTracked() {
+		item := v
 
-		// Получаем значение свойства по имени
-		fieldValue := reflect.ValueOf(*m.memStats.m).FieldByName(name)
-
-		// Проверяем, что свойство с таким именем существует
-		if fieldValue.IsValid() {
-			go func() {
-				err := m.s.SendMemStatsMetric(m.cf.PushAddr(), gaugeType, name, fieldValue)
-				if err != nil {
-					log.Print(err)
-				}
-			}()
-		}
+		go func() {
+			err := m.s.SendMemStatsMetric(item.mType, item.name, item.value)
+			if err != nil {
+				log.Print(err)
+			}
+		}()
 	}
+}
 
-	// Отправялем кастомные метрики не из пакета runtime
-	go func() {
-		err := m.s.SendMemStatsMetric(m.cf.PushAddr(), gaugeType, "RandomValue", m.memStats.RandomValue)
-		if err != nil {
-			log.Print(err)
-		}
-	}()
-
-	go func() {
-		err := m.s.SendMemStatsMetric(m.cf.PushAddr(), counterType, "PollCount", m.memStats.PollCount)
-		if err != nil {
-			log.Print(err)
-		}
-	}()
+func (m RuntimeMetrics) MetricsTracked() []metricsTracked {
+	return []metricsTracked{
+		{
+			mType: gaugeType,
+			name:  "Alloc",
+			value: MetricsValueToString(m.memStats.m.Alloc),
+		},
+		{
+			mType: gaugeType,
+			name:  "BuckHashSys",
+			value: MetricsValueToString(m.memStats.m.BuckHashSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "Frees",
+			value: MetricsValueToString(m.memStats.m.Frees),
+		},
+		{
+			mType: gaugeType,
+			name:  "GCCPUFraction",
+			value: MetricsValueToString(m.memStats.m.GCCPUFraction),
+		},
+		{
+			mType: gaugeType,
+			name:  "Mallocs",
+			value: MetricsValueToString(m.memStats.m.Mallocs),
+		},
+		{
+			mType: gaugeType,
+			name:  "MSpanSys",
+			value: MetricsValueToString(m.memStats.m.MSpanSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "MSpanInuse",
+			value: MetricsValueToString(m.memStats.m.MSpanInuse),
+		},
+		{
+			mType: gaugeType,
+			name:  "MCacheSys",
+			value: MetricsValueToString(m.memStats.m.MCacheSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "MCacheInuse",
+			value: MetricsValueToString(m.memStats.m.MCacheInuse),
+		},
+		{
+			mType: gaugeType,
+			name:  "Lookups",
+			value: MetricsValueToString(m.memStats.m.Lookups),
+		},
+		{
+			mType: gaugeType,
+			name:  "LastGC",
+			value: MetricsValueToString(m.memStats.m.LastGC),
+		},
+		{
+			mType: gaugeType,
+			name:  "HeapSys",
+			value: MetricsValueToString(m.memStats.m.HeapSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "HeapReleased",
+			value: MetricsValueToString(m.memStats.m.HeapReleased),
+		},
+		{
+			mType: gaugeType,
+			name:  "HeapObjects",
+			value: MetricsValueToString(m.memStats.m.HeapObjects),
+		},
+		{
+			mType: gaugeType,
+			name:  "HeapInuse",
+			value: MetricsValueToString(m.memStats.m.HeapInuse),
+		},
+		{
+			mType: gaugeType,
+			name:  "HeapIdle",
+			value: MetricsValueToString(m.memStats.m.HeapIdle),
+		},
+		{
+			mType: gaugeType,
+			name:  "HeapAlloc",
+			value: MetricsValueToString(m.memStats.m.HeapAlloc),
+		},
+		{
+			mType: gaugeType,
+			name:  "GCSys",
+			value: MetricsValueToString(m.memStats.m.GCSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "NumForcedGC",
+			value: MetricsValueToString(m.memStats.m.NumForcedGC),
+		},
+		{
+			mType: gaugeType,
+			name:  "NumGC",
+			value: MetricsValueToString(m.memStats.m.NumGC),
+		},
+		{
+			mType: gaugeType,
+			name:  "OtherSys",
+			value: MetricsValueToString(m.memStats.m.OtherSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "PauseTotalNs",
+			value: MetricsValueToString(m.memStats.m.PauseTotalNs),
+		},
+		{
+			mType: gaugeType,
+			name:  "StackInuse",
+			value: MetricsValueToString(m.memStats.m.StackInuse),
+		},
+		{
+			mType: gaugeType,
+			name:  "StackSys",
+			value: MetricsValueToString(m.memStats.m.StackSys),
+		},
+		{
+			mType: gaugeType,
+			name:  "Sys",
+			value: MetricsValueToString(m.memStats.m.Sys),
+		},
+		{
+			mType: gaugeType,
+			name:  "TotalAlloc",
+			value: MetricsValueToString(m.memStats.m.TotalAlloc),
+		},
+		{
+			mType: gaugeType,
+			name:  "RandomValue",
+			value: MetricsValueToString(m.memStats.RandomValue),
+		},
+		{
+			mType: counterType,
+			name:  "PollCount",
+			value: MetricsValueToString(m.memStats.PollCount),
+		},
+	}
 }
 
 func (m RuntimeMetrics) Sync() {

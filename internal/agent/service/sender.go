@@ -1,27 +1,38 @@
 package service
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 )
 
+type SenderConfig interface {
+	PushAddr() string
+}
+
 type MSender struct {
+	cf SenderConfig
 }
 
-func NewMetricSender() *MSender {
-	return &MSender{}
+func NewMetricSender(cf SenderConfig) *MSender {
+	return &MSender{
+		cf: cf,
+	}
 }
 
-func (s MSender) SendMemStatsMetric(addr, metricType, metricName string, metricValue any) error {
-	url := fmt.Sprintf("http://%s/update/%s/%s/%v", addr, metricType, metricName, metricValue)
+func (s MSender) SendMemStatsMetric(metricType, metricName, metricValue string) error {
 
-	resp, err := http.Post(url, "text/plain", bytes.NewBuffer([]byte{}))
+	u := &url.URL{
+		Scheme: "http",
+		Host:   s.cf.PushAddr(),
+	}
+
+	u.Path = path.Join("update", metricType, metricName, metricValue)
+
+	resp, err := http.Post(u.String(), "text/plain; charset=utf-8", nil)
 	if err != nil {
 		return err
 	}
 
-	defer resp.Body.Close()
-
-	return nil
+	return resp.Body.Close()
 }

@@ -4,20 +4,20 @@ import (
 	"net/http"
 )
 
-type Conf interface {
+type ServerConfig interface {
 	Addr() string
 }
 
 type Handlers interface {
-	UpdateMetricsHande(http.ResponseWriter, *http.Request)
+	UpdateMetricsHandle(http.ResponseWriter, *http.Request)
 }
 
 type Server struct {
-	cnf Conf
+	cnf ServerConfig
 	h   Handlers
 }
 
-func NewServer(c Conf, h Handlers) *Server {
+func NewServer(c ServerConfig, h Handlers) *Server {
 	return &Server{
 		cnf: c,
 		h:   h,
@@ -28,7 +28,7 @@ func (s Server) Listen() error {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc(`/update/`, s.h.UpdateMetricsHande)
+	mux.HandleFunc(`/update/`, s.h.UpdateMetricsHandle)
 
 	return http.ListenAndServe(s.cnf.Addr(), mux)
 }

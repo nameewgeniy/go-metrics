@@ -9,9 +9,9 @@ import (
 
 func main() {
 
-	mcf := conf.NewMetricsConf("localhost:8080")
-	snd := service.NewMetricSender()
-	rm := service.NewRuntimeMetrics(mcf, snd)
+	scf := conf.NewSenderConfig("localhost:8080")
+	snd := service.NewMetricSender(scf)
+	rm := service.NewRuntimeMetrics(snd)
 
 	cf := conf.NewAgentConf(2, 10)
 	a := agent.NewAgent(cf, rm)
