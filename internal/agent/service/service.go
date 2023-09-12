@@ -1,16 +1,12 @@
 package service
 
 import (
+	"github.com/nameewgeniy/go-metrics/internal"
 	"log"
 	"math/rand"
 	"runtime"
 	"sync"
 	"time"
-)
-
-const (
-	counterType = "counter"
-	gaugeType   = "gauge"
 )
 
 type MetricsSender interface {
@@ -65,142 +61,142 @@ func (m RuntimeMetrics) Push() {
 func (m RuntimeMetrics) MetricsTracked() []metricsTracked {
 	return []metricsTracked{
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "Alloc",
 			value: MetricsValueToString(m.memStats.m.Alloc),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "BuckHashSys",
 			value: MetricsValueToString(m.memStats.m.BuckHashSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "Frees",
 			value: MetricsValueToString(m.memStats.m.Frees),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "GCCPUFraction",
 			value: MetricsValueToString(m.memStats.m.GCCPUFraction),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "Mallocs",
 			value: MetricsValueToString(m.memStats.m.Mallocs),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "MSpanSys",
 			value: MetricsValueToString(m.memStats.m.MSpanSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "MSpanInuse",
 			value: MetricsValueToString(m.memStats.m.MSpanInuse),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "MCacheSys",
 			value: MetricsValueToString(m.memStats.m.MCacheSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "MCacheInuse",
 			value: MetricsValueToString(m.memStats.m.MCacheInuse),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "Lookups",
 			value: MetricsValueToString(m.memStats.m.Lookups),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "LastGC",
 			value: MetricsValueToString(m.memStats.m.LastGC),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "HeapSys",
 			value: MetricsValueToString(m.memStats.m.HeapSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "HeapReleased",
 			value: MetricsValueToString(m.memStats.m.HeapReleased),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "HeapObjects",
 			value: MetricsValueToString(m.memStats.m.HeapObjects),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "HeapInuse",
 			value: MetricsValueToString(m.memStats.m.HeapInuse),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "HeapIdle",
 			value: MetricsValueToString(m.memStats.m.HeapIdle),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "HeapAlloc",
 			value: MetricsValueToString(m.memStats.m.HeapAlloc),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "GCSys",
 			value: MetricsValueToString(m.memStats.m.GCSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "NumForcedGC",
 			value: MetricsValueToString(m.memStats.m.NumForcedGC),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "NumGC",
 			value: MetricsValueToString(m.memStats.m.NumGC),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "OtherSys",
 			value: MetricsValueToString(m.memStats.m.OtherSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "PauseTotalNs",
 			value: MetricsValueToString(m.memStats.m.PauseTotalNs),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "StackInuse",
 			value: MetricsValueToString(m.memStats.m.StackInuse),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "StackSys",
 			value: MetricsValueToString(m.memStats.m.StackSys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "Sys",
 			value: MetricsValueToString(m.memStats.m.Sys),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "TotalAlloc",
 			value: MetricsValueToString(m.memStats.m.TotalAlloc),
 		},
 		{
-			mType: gaugeType,
+			mType: internal.GaugeType,
 			name:  "RandomValue",
 			value: MetricsValueToString(m.memStats.RandomValue),
 		},
 		{
-			mType: counterType,
+			mType: internal.CounterType,
 			name:  "PollCount",
 			value: MetricsValueToString(m.memStats.PollCount),
 		},

@@ -12,6 +12,8 @@ type ServerConfig interface {
 
 type Handlers interface {
 	UpdateMetricsHandle(http.ResponseWriter, *http.Request)
+	ViewMetricsHandle(http.ResponseWriter, *http.Request)
+	GetMetricsHandle(http.ResponseWriter, *http.Request)
 }
 
 type Server struct {
@@ -29,7 +31,9 @@ func NewServer(c ServerConfig, h Handlers) *Server {
 func (s Server) Listen() error {
 
 	r := mux.NewRouter()
-	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle)
+	r.HandleFunc("/", s.h.ViewMetricsHandle).Methods(http.MethodGet)
+	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/value/{type}/{name}", s.h.GetMetricsHandle).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      r,

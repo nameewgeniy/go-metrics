@@ -1,23 +1,34 @@
 package handlers
 
 import (
+	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type MockMetricsUpdater struct {
-	UpdateFn func(metricType, metricName, metricValue string) error
+type MockStorage struct {
+	AddFn  func(item storage.MetricsItem) error
+	FindFn func(mType, name string) (storage.MetricsItem, error)
+	AllFn  func() ([]storage.MetricsItem, error)
 }
 
-func (m *MockMetricsUpdater) Update(metricType, metricName, metricValue string) error {
-	return m.UpdateFn(metricType, metricName, metricValue)
+func (m *MockStorage) Add(i storage.MetricsItem) error {
+	return m.AddFn(i)
 }
 
-func TestUpdateMetricsHandle(t *testing.T) {
-	handler := Handlers{
-		m: &MockMetricsUpdater{
-			UpdateFn: func(metricType, metricName, metricValue string) error {
+func (m *MockStorage) Find(mType, name string) (storage.MetricsItem, error) {
+	return m.FindFn(mType, name)
+}
+
+func (m *MockStorage) All() ([]storage.MetricsItem, error) {
+	return m.AllFn()
+}
+
+func TestMuxHandlers_UpdateMetricsHandle(t *testing.T) {
+	handler := MuxHandlers{
+		s: &MockStorage{
+			AddFn: func(item storage.MetricsItem) error {
 				return nil
 			},
 		},

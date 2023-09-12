@@ -1,39 +1,33 @@
 package handlers
 
 import (
+	"errors"
+	"github.com/gorilla/mux"
+	"github.com/nameewgeniy/go-metrics/internal/server/storage"
+	"html/template"
 	"net/http"
-	"strings"
 )
 
-type Metrics interface {
-	Update(mType, mName, mValue string) error
+type MuxHandlers struct {
+	s storage.Storage
 }
 
-type Handlers struct {
-	m Metrics
-}
-
-func NewHandlers(m Metrics) *Handlers {
-	return &Handlers{
-		m: m,
+func NewMuxHandlers(s storage.Storage) *MuxHandlers {
+	return &MuxHandlers{
+		s: s,
 	}
 }
 
-func (h Handlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
+func (h MuxHandlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
+	vars := mux.Vars(r)
+	it := storage.MetricsItem{
+		Type:  vars["type"],
+		Name:  vars["name"],
+		Value: vars["value"],
 	}
 
-	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) != 5 {
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return
-	}
-	metricType, metricName, metricValue := parts[2], parts[3], parts[4]
-
-	err := h.m.Update(metricType, metricName, metricValue)
+	err := h.s.Add(it)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -41,5 +35,57 @@ func (h Handlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {
+
+	tmpl, err := template.ParseFiles("templates/index.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := h.s.All()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Выполняем шаблон и передаем данные
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	item, err := h.s.Find(vars["type"], vars["name"])
+
+	if err != nil {
+		if errors.Is(err, storage.ItemNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	_, err = w.Write([]byte(item.String()))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }

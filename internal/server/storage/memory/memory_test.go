@@ -1,38 +1,44 @@
 package memory
 
 import (
+	"github.com/nameewgeniy/go-metrics/internal"
 	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestSave(t *testing.T) {
-	memory := Memory{}
+func TestMemory_Add(t *testing.T) {
+	m := NewMemory()
 
-	t.Run("Save gauge metrics", func(t *testing.T) {
-		item := storage.MetricsItem{
-			Gauge: map[string]float64{
-				"metric1": 2.5,
-				"metric2": 3.7,
-			},
-			Counter: map[string]int64{},
-		}
+	// Тестирование добавления счетчика
+	counter := storage.MetricsItem{
+		Name:  "requests",
+		Type:  internal.CounterType,
+		Value: int64(10),
+	}
+	err := m.Add(counter)
+	assert.NoError(t, err)
+	v, _ := m.Counter.Load("requests")
+	assert.Equal(t, int64(10), v.(int64))
 
-		err := memory.Save(item)
+	// Тестирование добавления метрики
+	gauge := storage.MetricsItem{
+		Name:  "temperature",
+		Type:  internal.GaugeType,
+		Value: 25.5,
+	}
+	err = m.Add(gauge)
+	assert.NoError(t, err)
+	v, _ = m.Gauge.Load("temperature")
+	assert.Equal(t, 25.5, v.(float64))
 
-		assert.Nil(t, err)
-
-		// Check if gauge metrics were saved correctly
-		expectedGauges := map[string]float64{
-			"metric1": 2.5,
-			"metric2": 3.7,
-		}
-
-		for name, value := range expectedGauges {
-			actual, ok := memory.gauge.Load(name)
-			assert.True(t, ok, "Expected gauge metric %s to be saved", name)
-			assert.Equal(t, value, actual, "Expected gauge metric %s to have value %f", name, value)
-		}
-
-	})
+	// Тестирование неподдерживаемого типа
+	unknown := storage.MetricsItem{
+		Name:  "unknown",
+		Type:  "unknown",
+		Value: 42,
+	}
+	err = m.Add(unknown)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "unsupported type")
 }
