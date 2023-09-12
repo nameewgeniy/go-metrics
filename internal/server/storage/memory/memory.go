@@ -76,7 +76,7 @@ func (m *Memory) Find(mType, name string) (storage.MetricsItem, error) {
 		return res, fmt.Errorf("unsupported type")
 	}
 
-	return res, storage.ItemNotFound
+	return res, storage.ErrItemNotFound
 }
 
 func (m *Memory) All() ([]storage.MetricsItem, error) {

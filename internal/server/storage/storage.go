@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-var ItemNotFound = errors.New("item not found")
+var ErrItemNotFound = errors.New("item not found")
 
 type MetricsItem struct {
 	Type  string

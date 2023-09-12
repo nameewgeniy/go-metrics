@@ -70,7 +70,7 @@ func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
 	item, err := h.s.Find(vars["type"], vars["name"])
 
 	if err != nil {
-		if errors.Is(err, storage.ItemNotFound) {
+		if errors.Is(err, storage.ErrItemNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		} else {
