@@ -1,7 +1,9 @@
 package server
 
 import (
+	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
 
 type ServerConfig interface {
@@ -26,9 +28,15 @@ func NewServer(c ServerConfig, h Handlers) *Server {
 
 func (s Server) Listen() error {
 
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
+	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle)
 
-	mux.HandleFunc(`/update/`, s.h.UpdateMetricsHandle)
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         s.cnf.Addr(),
+		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+	}
 
-	return http.ListenAndServe(s.cnf.Addr(), mux)
+	return srv.ListenAndServe()
 }
