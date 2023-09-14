@@ -1,7 +1,8 @@
 package agent
 
 import (
-	"sync"
+	"context"
+	"fmt"
 	"time"
 )
 
@@ -27,29 +28,45 @@ func NewAgent(c Config, m Metrics) *Agent {
 	}
 }
 
-func (s Agent) Do() error {
+func (s Agent) Do(ctx context.Context, errorCh chan<- error) {
 
-	var wg sync.WaitGroup
-	wg.Add(2)
+	pollTicker := time.NewTicker(s.cnf.PollInterval())
+	defer pollTicker.Stop()
+
+	reportTicker := time.NewTicker(s.cnf.ReportInterval())
+	defer reportTicker.Stop()
 
 	go func() {
-		defer wg.Done()
-		s.callByTime(s.cnf.PollInterval(), s.m.Sync)
+		defer func() {
+			if r := recover(); r != nil {
+				errorCh <- fmt.Errorf("report panic: %v", r)
+			}
+		}()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-pollTicker.C:
+				s.m.Sync()
+			}
+		}
 	}()
 
 	go func() {
-		defer wg.Done()
-		s.callByTime(s.cnf.ReportInterval(), s.m.Push)
+		defer func() {
+			if r := recover(); r != nil {
+				errorCh <- fmt.Errorf("sync panic: %v", r)
+			}
+		}()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-reportTicker.C:
+				s.m.Push()
+			}
+		}
 	}()
-
-	wg.Wait()
-
-	return nil
-}
-
-func (s Agent) callByTime(d time.Duration, f func()) {
-	for {
-		f()
-		time.Sleep(d)
-	}
 }
