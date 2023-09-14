@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	"github.com/gorilla/mux"
 	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"html/template"
 	"net/http"
@@ -18,26 +16,6 @@ func NewMuxHandlers(s storage.Storage) *MuxHandlers {
 	}
 }
 
-func (h MuxHandlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
-
-	vars := mux.Vars(r)
-	it := storage.MetricsItem{
-		Type:  vars["type"],
-		Name:  vars["name"],
-		Value: vars["value"],
-	}
-
-	err := h.s.Add(it)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-}
-
 func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles("templates/index.html")
@@ -46,7 +24,7 @@ func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.s.All()
+	data, err := h.makeMetricsTemplateData()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -60,32 +38,35 @@ func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	h.setDefaultHeaders(w)
 }
 
-func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
+func (h MuxHandlers) makeMetricsTemplateData() (map[string]any, error) {
+	data := make(map[string]any)
 
-	vars := mux.Vars(r)
-
-	item, err := h.s.Find(vars["type"], vars["name"])
-
-	if err != nil {
-		if errors.Is(err, storage.ErrItemNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
-		return
-	}
-
-	_, err = w.Write([]byte(item.String()))
+	counters, err := h.s.FindCounterAll()
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	w.WriteHeader(http.StatusOK)
+	for _, c := range counters {
+		data[c.Name] = c.Value
+	}
+
+	gauages, err := h.s.FindGauageAll()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, g := range gauages {
+		data[g.Name] = g.Value
+	}
+
+	return data, nil
+}
+
+func (h MuxHandlers) setDefaultHeaders(w http.ResponseWriter) {
+	w.Header().Set("content-type", "text/plain; charset=utf-8")
 }

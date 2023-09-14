@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal"
 	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -11,34 +10,57 @@ func TestMemory_Add(t *testing.T) {
 	m := NewMemory()
 
 	// Тестирование добавления счетчика
-	counter := storage.MetricsItem{
+	counter := storage.MetricsItemCounter{
 		Name:  "requests",
-		Type:  internal.CounterType,
 		Value: int64(10),
 	}
-	err := m.Add(counter)
+	err := m.AddCounter(counter)
 	assert.NoError(t, err)
 	v, _ := m.Counter.Load("requests")
 	assert.Equal(t, int64(10), v.(int64))
 
+	err = m.AddCounter(counter)
+	assert.NoError(t, err)
+	v, _ = m.Counter.Load("requests")
+	assert.Equal(t, int64(20), v.(int64))
+
 	// Тестирование добавления метрики
-	gauge := storage.MetricsItem{
+	gauge := storage.MetricsItemGauage{
 		Name:  "temperature",
-		Type:  internal.GaugeType,
 		Value: 25.5,
 	}
-	err = m.Add(gauge)
+	err = m.AddGauage(gauge)
 	assert.NoError(t, err)
 	v, _ = m.Gauge.Load("temperature")
 	assert.Equal(t, 25.5, v.(float64))
+}
 
-	// Тестирование неподдерживаемого типа
-	unknown := storage.MetricsItem{
-		Name:  "unknown",
-		Type:  "unknown",
-		Value: 42,
-	}
-	err = m.Add(unknown)
-	assert.Error(t, err)
-	assert.EqualError(t, err, "unsupported type")
+func TestMemory_FindCounterItem(t *testing.T) {
+	m := &Memory{}
+	m.Counter.Store("counter1", int64(10))
+
+	// Проверяем, что возвращено правильное значение для существующего элемента
+	item, err := m.FindCounterItem("counter1")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(10), item.Value) // ожидаемое значение
+
+	// Проверяем, что возвращается пустой элемент для несуществующего имени
+	item, err = m.FindCounterItem("counter2")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), item.Value) // ожидаемое значение
+}
+
+func TestMemory_FindGauageItem(t *testing.T) {
+	m := &Memory{}
+	m.Gauge.Store("gauage1", float64(10))
+
+	// Проверяем, что возвращено правильное значение для существующего элемента
+	item, err := m.FindGauageItem("gauage1")
+	assert.NoError(t, err)
+	assert.Equal(t, float64(10), item.Value) // ожидаемое значение
+
+	// Проверяем, что возвращается пустой элемент для несуществующего имени
+	item, err = m.FindGauageItem("gauage2")
+	assert.NoError(t, err)
+	assert.Equal(t, float64(0), item.Value) // ожидаемое значение
 }

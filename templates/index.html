@@ -9,8 +9,8 @@
 </head>
 <body>
     <ul>
-        {{range .}}
-        <li>{{.Name}} - {{.Value}}</li>
+        {{range $key, $value := .}}
+        <li>{{$key}} - {{$value}}</li>
         {{end}}
     </ul>
 </body>

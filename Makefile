@@ -22,12 +22,9 @@ test.get:
 	@chmod +x metricstest
 
 test.all: build.all
-	@metricstest -test.v -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server
+	@metricstest -test.v -server-port=8080 -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server
 
-# make test.server.i i=1
-test.server.i: build.server
-	@metricstest -test.v -binary-path=cmd/server/server -test.run=^TestIteration$(i)[AB]*$
 
-# make test.agent.i i=1
-test.agent.i: build.agent
-	@metricstest -test.v -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server -test.run=^TestIteration$(i)[AB]*$
+# make test.i i=1
+test.i: build.all
+	@metricstest -test.v -server-port=8080 -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server -test.run=^TestIteration$(i)[AB]*$
