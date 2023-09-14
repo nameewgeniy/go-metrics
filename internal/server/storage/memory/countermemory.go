@@ -17,8 +17,9 @@ func (m *Memory) FindCounterItem(name string) (storage.MetricsItemCounter, error
 	res := storage.MetricsItemCounter{}
 	if val, ok := m.Counter.Load(name); ok {
 		res.Value = val.(int64)
+		return res, nil
 	}
-	return res, nil
+	return storage.MetricsItemCounter{}, storage.ErrItemNotFound
 }
 
 func (m *Memory) FindCounterAll() ([]storage.MetricsItemCounter, error) {

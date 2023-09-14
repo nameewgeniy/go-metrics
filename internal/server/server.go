@@ -11,8 +11,8 @@ type ServerConfig interface {
 }
 
 type Handlers interface {
-	UpdateGauageMetricsHandle(http.ResponseWriter, *http.Request)
-	GetGauageMetricsHandle(http.ResponseWriter, *http.Request)
+	UpdateGaugeMetricsHandle(http.ResponseWriter, *http.Request)
+	GetGaugeMetricsHandle(http.ResponseWriter, *http.Request)
 
 	UpdateCounterMetricsHandle(http.ResponseWriter, *http.Request)
 	GetCounterMetricsHandle(http.ResponseWriter, *http.Request)
@@ -37,8 +37,8 @@ func (s Server) Listen() error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.h.ViewMetricsHandle).Methods(http.MethodGet)
 
-	r.HandleFunc("/update/gauage/{name}/{value}", s.h.UpdateGauageMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/value/gauage/{name}", s.h.GetGauageMetricsHandle).Methods(http.MethodGet)
+	r.HandleFunc("/update/gauge/{name}/{value}", s.h.UpdateGaugeMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/value/gauge/{name}", s.h.GetGaugeMetricsHandle).Methods(http.MethodGet)
 
 	r.HandleFunc("/update/counter/{name}/{value}", s.h.UpdateCounterMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/value/counter/{name}", s.h.GetCounterMetricsHandle).Methods(http.MethodGet)

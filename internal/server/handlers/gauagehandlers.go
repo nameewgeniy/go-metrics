@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (h MuxHandlers) UpdateGauageMetricsHandle(w http.ResponseWriter, r *http.Request) {
+func (h MuxHandlers) UpdateGaugeMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	value, err := strconv.ParseFloat(vars["value"], 64)
@@ -18,12 +18,12 @@ func (h MuxHandlers) UpdateGauageMetricsHandle(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	it := storage.MetricsItemGauage{
+	it := storage.MetricsItemGauge{
 		Name:  vars["name"],
 		Value: value,
 	}
 
-	err = h.s.AddGauage(it)
+	err = h.s.AddGauge(it)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -34,11 +34,11 @@ func (h MuxHandlers) UpdateGauageMetricsHandle(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h MuxHandlers) GetGauageMetricsHandle(w http.ResponseWriter, r *http.Request) {
+func (h MuxHandlers) GetGaugeMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	item, err := h.s.FindGauageItem(vars["name"])
+	item, err := h.s.FindGaugeItem(vars["name"])
 
 	if err != nil {
 		if errors.Is(err, storage.ErrItemNotFound) {
@@ -51,7 +51,7 @@ func (h MuxHandlers) GetGauageMetricsHandle(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	_, err = w.Write([]byte(strconv.FormatFloat(item.Value, 'f', 10, 64)))
+	_, err = w.Write([]byte(strconv.FormatFloat(item.Value, 'f', 3, 64)))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

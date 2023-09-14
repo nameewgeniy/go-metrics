@@ -54,13 +54,13 @@ func (h MuxHandlers) makeMetricsTemplateData() (map[string]any, error) {
 		data[c.Name] = c.Value
 	}
 
-	gauages, err := h.s.FindGauageAll()
+	gauges, err := h.s.FindGaugeAll()
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, g := range gauages {
+	for _, g := range gauges {
 		data[g.Name] = g.Value
 	}
 

@@ -11,9 +11,9 @@ import (
 
 type MockStorage struct {
 	AddCounterFn      func(i storage.MetricsItemCounter) error
-	AddGauageFn       func(gauage storage.MetricsItemGauage) error
-	FindGauageItemFn  func(name string) (storage.MetricsItemGauage, error)
-	FindGauageAllFn   func() ([]storage.MetricsItemGauage, error)
+	AddGaugeFn        func(gauge storage.MetricsItemGauge) error
+	FindGaugeItemFn   func(name string) (storage.MetricsItemGauge, error)
+	FindGaugeAllFn    func() ([]storage.MetricsItemGauge, error)
 	FindCounterItemFn func(name string) (storage.MetricsItemCounter, error)
 	FindCounterAllFn  func() ([]storage.MetricsItemCounter, error)
 }
@@ -22,16 +22,16 @@ func (m *MockStorage) AddCounter(i storage.MetricsItemCounter) error {
 	return m.AddCounterFn(i)
 }
 
-func (m *MockStorage) AddGauage(gauage storage.MetricsItemGauage) error {
-	return m.AddGauageFn(gauage)
+func (m *MockStorage) AddGauge(gauge storage.MetricsItemGauge) error {
+	return m.AddGaugeFn(gauge)
 }
 
-func (m *MockStorage) FindGauageItem(name string) (storage.MetricsItemGauage, error) {
-	return m.FindGauageItemFn(name)
+func (m *MockStorage) FindGaugeItem(name string) (storage.MetricsItemGauge, error) {
+	return m.FindGaugeItemFn(name)
 }
 
-func (m *MockStorage) FindGauageAll() ([]storage.MetricsItemGauage, error) {
-	return m.FindGauageAllFn()
+func (m *MockStorage) FindGaugeAll() ([]storage.MetricsItemGauge, error) {
+	return m.FindGaugeAllFn()
 }
 
 func (m *MockStorage) FindCounterItem(name string) (storage.MetricsItemCounter, error) {
@@ -73,24 +73,24 @@ func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
 	}
 }
 
-func TestMuxHandlers_UpdateGauageMetricsHandle(t *testing.T) {
+func TestMuxHandlers_UpdateGaugeMetricsHandle(t *testing.T) {
 	h := MuxHandlers{
 		s: &MockStorage{
-			AddGauageFn: func(i storage.MetricsItemGauage) error {
+			AddGaugeFn: func(i storage.MetricsItemGauge) error {
 				return nil
 			},
 		}, // замените на вашу реализацию хранилища
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
-	req := httptest.NewRequest(http.MethodGet, "/metrics/gauage/10", nil)
+	req := httptest.NewRequest(http.MethodGet, "/metrics/gauge/10", nil)
 
 	// Создаем "фейковый" ResponseWriter для записи ответа
 	rec := httptest.NewRecorder()
 
 	// Создаем "фейковый" маршрутизатор и регистрируем обработчик
 	r := mux.NewRouter()
-	r.HandleFunc("/metrics/{name}/{value}", h.UpdateGauageMetricsHandle)
+	r.HandleFunc("/metrics/{name}/{value}", h.UpdateGaugeMetricsHandle)
 
 	// Выполняем запрос с помощью маршрутизатора
 	r.ServeHTTP(rec, req)

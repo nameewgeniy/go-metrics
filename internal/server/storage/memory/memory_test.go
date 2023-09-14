@@ -25,11 +25,11 @@ func TestMemory_Add(t *testing.T) {
 	assert.Equal(t, int64(20), v.(int64))
 
 	// Тестирование добавления метрики
-	gauge := storage.MetricsItemGauage{
+	gauge := storage.MetricsItemGauge{
 		Name:  "temperature",
 		Value: 25.5,
 	}
-	err = m.AddGauage(gauge)
+	err = m.AddGauge(gauge)
 	assert.NoError(t, err)
 	v, _ = m.Gauge.Load("temperature")
 	assert.Equal(t, 25.5, v.(float64))
@@ -50,17 +50,17 @@ func TestMemory_FindCounterItem(t *testing.T) {
 	assert.Equal(t, int64(0), item.Value) // ожидаемое значение
 }
 
-func TestMemory_FindGauageItem(t *testing.T) {
+func TestMemory_FindGaugeItem(t *testing.T) {
 	m := &Memory{}
-	m.Gauge.Store("gauage1", float64(10))
+	m.Gauge.Store("gauge1", float64(10))
 
 	// Проверяем, что возвращено правильное значение для существующего элемента
-	item, err := m.FindGauageItem("gauage1")
+	item, err := m.FindGaugeItem("gauge1")
 	assert.NoError(t, err)
 	assert.Equal(t, float64(10), item.Value) // ожидаемое значение
 
 	// Проверяем, что возвращается пустой элемент для несуществующего имени
-	item, err = m.FindGauageItem("gauage2")
+	item, err = m.FindGaugeItem("gauge2")
 	assert.NoError(t, err)
 	assert.Equal(t, float64(0), item.Value) // ожидаемое значение
 }
