@@ -46,12 +46,10 @@ func run() error {
 
 	a.Do(ctx, errorCh)
 
-	for {
-		select {
-		case <-sig:
-			return errors.New("stop app")
-		case err = <-errorCh:
-			return err
-		}
+	select {
+	case <-sig:
+		return errors.New("stop app")
+	case err = <-errorCh:
+		return err
 	}
 }

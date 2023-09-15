@@ -33,7 +33,7 @@ func (s Server) Listen() error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.h.ViewMetricsHandle).Methods(http.MethodGet)
 
-	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle).Methods(http.MethodPost, http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/value/{type}/{name}", s.h.GetMetricsHandle).Methods(http.MethodGet)
 
 	srv := &http.Server{
