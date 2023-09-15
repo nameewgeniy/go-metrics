@@ -11,12 +11,8 @@ type ServerConfig interface {
 }
 
 type Handlers interface {
-	UpdateGaugeMetricsHandle(http.ResponseWriter, *http.Request)
-	GetGaugeMetricsHandle(http.ResponseWriter, *http.Request)
-
-	UpdateCounterMetricsHandle(http.ResponseWriter, *http.Request)
-	GetCounterMetricsHandle(http.ResponseWriter, *http.Request)
-
+	UpdateMetricsHandle(http.ResponseWriter, *http.Request)
+	GetMetricsHandle(http.ResponseWriter, *http.Request)
 	ViewMetricsHandle(http.ResponseWriter, *http.Request)
 }
 
@@ -37,11 +33,8 @@ func (s Server) Listen() error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.h.ViewMetricsHandle).Methods(http.MethodGet)
 
-	r.HandleFunc("/update/gauge/{name}/{value}", s.h.UpdateGaugeMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/value/gauge/{name}", s.h.GetGaugeMetricsHandle).Methods(http.MethodGet)
-
-	r.HandleFunc("/update/counter/{name}/{value}", s.h.UpdateCounterMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/value/counter/{name}", s.h.GetCounterMetricsHandle).Methods(http.MethodGet)
+	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle).Methods(http.MethodPost, http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/value/{type}/{name}", s.h.GetMetricsHandle).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      r,

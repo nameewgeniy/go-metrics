@@ -1,6 +1,11 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/nameewgeniy/go-metrics/internal"
+	strategy "github.com/nameewgeniy/go-metrics/internal/server/handlers/strategy"
 	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"html/template"
 	"net/http"
@@ -14,6 +19,70 @@ func NewMuxHandlers(s storage.Storage) *MuxHandlers {
 	return &MuxHandlers{
 		s: s,
 	}
+}
+
+func (h MuxHandlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	strategies := map[string]strategy.MetricsItemStrategy{
+		internal.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
+		internal.CounterType: &strategy.CounterMetricsItemStrategy{},
+	}
+
+	strtg, ok := strategies[vars["type"]]
+	if !ok {
+		http.Error(w, fmt.Sprintf("unsupported metrics type: %s", vars["type"]), http.StatusBadRequest)
+		return
+	}
+
+	err := strtg.AddMetric(vars["name"], vars["value"], h.s)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	h.setDefaultHeaders(w)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	strategies := map[string]strategy.MetricsItemStrategy{
+		internal.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
+		internal.CounterType: &strategy.CounterMetricsItemStrategy{},
+	}
+
+	strtg, ok := strategies[vars["type"]]
+	if !ok {
+		http.Error(w, fmt.Sprintf("unsupported metrics type: %s", vars["type"]), http.StatusBadRequest)
+		return
+	}
+
+	val, err := strtg.GetMetric(vars["name"], h.s)
+
+	if err != nil {
+		if errors.Is(err, storage.ErrItemNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	_, err = w.Write([]byte(val))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	h.setDefaultHeaders(w)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {

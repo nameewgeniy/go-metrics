@@ -52,14 +52,14 @@ func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
-	req := httptest.NewRequest(http.MethodGet, "/metrics/counter1/10", nil)
+	req := httptest.NewRequest(http.MethodGet, "/metrics/counter/test/10", nil)
 
 	// Создаем "фейковый" ResponseWriter для записи ответа
 	rec := httptest.NewRecorder()
 
 	// Создаем "фейковый" маршрутизатор и регистрируем обработчик
 	r := mux.NewRouter()
-	r.HandleFunc("/metrics/{name}/{value}", h.UpdateCounterMetricsHandle)
+	r.HandleFunc("/metrics/{type}/{name}/{value}", h.UpdateMetricsHandle)
 
 	// Выполняем запрос с помощью маршрутизатора
 	r.ServeHTTP(rec, req)
@@ -83,14 +83,14 @@ func TestMuxHandlers_UpdateGaugeMetricsHandle(t *testing.T) {
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
-	req := httptest.NewRequest(http.MethodGet, "/metrics/gauge/10", nil)
+	req := httptest.NewRequest(http.MethodGet, "/metrics/gauge/test/10", nil)
 
 	// Создаем "фейковый" ResponseWriter для записи ответа
 	rec := httptest.NewRecorder()
 
 	// Создаем "фейковый" маршрутизатор и регистрируем обработчик
 	r := mux.NewRouter()
-	r.HandleFunc("/metrics/{name}/{value}", h.UpdateGaugeMetricsHandle)
+	r.HandleFunc("/metrics/{type}/{name}/{value}", h.UpdateMetricsHandle)
 
 	// Выполняем запрос с помощью маршрутизатора
 	r.ServeHTTP(rec, req)

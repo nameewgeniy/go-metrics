@@ -44,10 +44,10 @@ func TestMemory_FindCounterItem(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(10), item.Value) // ожидаемое значение
 
-	// Проверяем, что возвращается пустой элемент для несуществующего имени
 	item, err = m.FindCounterItem("counter2")
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), item.Value) // ожидаемое значение
+
+	assert.Error(t, err)
+	assert.Equal(t, storage.ErrItemNotFound, err)
 }
 
 func TestMemory_FindGaugeItem(t *testing.T) {
@@ -59,8 +59,8 @@ func TestMemory_FindGaugeItem(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, float64(10), item.Value) // ожидаемое значение
 
-	// Проверяем, что возвращается пустой элемент для несуществующего имени
 	item, err = m.FindGaugeItem("gauge2")
-	assert.NoError(t, err)
-	assert.Equal(t, float64(0), item.Value) // ожидаемое значение
+
+	assert.Error(t, err)
+	assert.Equal(t, storage.ErrItemNotFound, err)
 }
