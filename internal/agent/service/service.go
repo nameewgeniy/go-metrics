@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/nameewgeniy/go-metrics/internal"
 	"log"
 	"math/rand"
@@ -43,6 +44,7 @@ func NewRuntimeMetrics(sender MetricsSender) *RuntimeMetrics {
 
 func (m RuntimeMetrics) Push() {
 
+	fmt.Print("push")
 	m.memStats.mutex.RLock()
 	defer m.memStats.mutex.RUnlock()
 
@@ -204,6 +206,8 @@ func (m RuntimeMetrics) MetricsTracked() []metricsTracked {
 }
 
 func (m RuntimeMetrics) Sync() {
+
+	fmt.Print("sync")
 	m.memStats.mutex.Lock()
 	defer m.memStats.mutex.Unlock()
 

@@ -30,18 +30,15 @@ func NewAgent(c Config, m Metrics) *Agent {
 
 func (s Agent) Do(ctx context.Context, errorCh chan<- error) {
 
-	pollTicker := time.NewTicker(s.cnf.PollInterval())
-	defer pollTicker.Stop()
-
-	reportTicker := time.NewTicker(s.cnf.ReportInterval())
-	defer reportTicker.Stop()
-
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				errorCh <- fmt.Errorf("report panic: %v", r)
 			}
 		}()
+
+		pollTicker := time.NewTicker(s.cnf.PollInterval())
+		defer pollTicker.Stop()
 
 		for {
 			select {
@@ -59,6 +56,9 @@ func (s Agent) Do(ctx context.Context, errorCh chan<- error) {
 				errorCh <- fmt.Errorf("sync panic: %v", r)
 			}
 		}()
+
+		reportTicker := time.NewTicker(s.cnf.ReportInterval())
+		defer reportTicker.Stop()
 
 		for {
 			select {
