@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/nameewgeniy/go-metrics/internal/logger"
 	"github.com/nameewgeniy/go-metrics/internal/server"
 	"github.com/nameewgeniy/go-metrics/internal/server/conf"
 	"github.com/nameewgeniy/go-metrics/internal/server/handlers"
@@ -21,6 +22,10 @@ func main() {
 func run() error {
 	f, err := parseFlags()
 	if err != nil {
+		return err
+	}
+
+	if err = logger.Initialize(f.logLevel); err != nil {
 		return err
 	}
 

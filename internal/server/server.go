@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/nameewgeniy/go-metrics/internal/logger/middleware"
 	"net/http"
 	"time"
 )
@@ -31,10 +32,10 @@ func NewServer(c ServerConfig, h Handlers) *Server {
 func (s Server) Listen() error {
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", s.h.ViewMetricsHandle).Methods(http.MethodGet)
+	r.Handle("/", middleware.RequestLogger(s.h.ViewMetricsHandle)).Methods(http.MethodGet)
 
-	r.HandleFunc("/update/{type}/{name}/{value}", s.h.UpdateMetricsHandle).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/value/{type}/{name}", s.h.GetMetricsHandle).Methods(http.MethodGet)
+	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(s.h.UpdateMetricsHandle)).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/value/{type}/{name}", middleware.RequestLogger(s.h.GetMetricsHandle)).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      r,
