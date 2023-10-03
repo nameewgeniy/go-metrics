@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"github.com/stretchr/testify/assert"
+	"go-metrics/internal/server/storage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -48,7 +48,7 @@ func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
 			AddCounterFn: func(i storage.MetricsItemCounter) error {
 				return nil
 			},
-		}, // замените на вашу реализацию хранилища
+		},
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
@@ -79,7 +79,7 @@ func TestMuxHandlers_UpdateGaugeMetricsHandle(t *testing.T) {
 			AddGaugeFn: func(i storage.MetricsItemGauge) error {
 				return nil
 			},
-		}, // замените на вашу реализацию хранилища
+		},
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами

@@ -15,13 +15,12 @@ type (
 )
 
 func NewLoggerResponseWriter(w http.ResponseWriter) *LoggerResponseWriter {
-	responseInfo := &Info{
-		status: 0,
-		size:   0,
-	}
 	return &LoggerResponseWriter{
 		ResponseWriter: w,
-		Info:           responseInfo,
+		Info: &Info{
+			status: 0,
+			size:   0,
+		},
 	}
 }
 

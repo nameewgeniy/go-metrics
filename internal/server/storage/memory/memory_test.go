@@ -1,8 +1,8 @@
 package memory
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"github.com/stretchr/testify/assert"
+	"go-metrics/internal/server/storage"
 	"testing"
 )
 

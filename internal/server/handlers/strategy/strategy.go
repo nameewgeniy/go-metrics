@@ -1,10 +1,11 @@
 package strategy
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
+	"go-metrics/internal/models"
+	"go-metrics/internal/server/storage"
 )
 
 type MetricsItemStrategy interface {
-	AddMetric(name, value string, s storage.Storage) error
-	GetMetric(name string, s storage.Storage) (string, error)
+	AddMetric(m models.Metrics, s storage.Storage) error
+	GetMetric(m *models.Metrics, s storage.Storage) error
 }

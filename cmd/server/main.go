@@ -2,11 +2,11 @@ package main
 
 import (
 	"errors"
-	"github.com/nameewgeniy/go-metrics/internal/logger"
-	"github.com/nameewgeniy/go-metrics/internal/server"
-	"github.com/nameewgeniy/go-metrics/internal/server/conf"
-	"github.com/nameewgeniy/go-metrics/internal/server/handlers"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage/memory"
+	"go-metrics/internal/logger"
+	"go-metrics/internal/server"
+	"go-metrics/internal/server/conf"
+	"go-metrics/internal/server/handlers"
+	"go-metrics/internal/server/storage/memory"
 	"log"
 	"os"
 	"os/signal"

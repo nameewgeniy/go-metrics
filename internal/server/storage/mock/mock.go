@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"github.com/stretchr/testify/mock"
+	"go-metrics/internal/server/storage"
 )
 
 type MockStorage struct {
