@@ -29,11 +29,13 @@ func run() error {
 		return err
 	}
 
-	store := memory.NewMemory()
+	mcfg := conf.NewStorageConf(f.fileStoragePath)
+	store := memory.NewMemory(mcfg)
+
 	handler := handlers.NewMuxHandlers(store)
 
-	cnf := conf.NewServerConf(f.addr)
-	srv := server.NewServer(cnf, handler)
+	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
+	srv := server.NewServer(cnf, handler, store)
 
 	sig := make(chan os.Signal, 1)
 	defer close(sig)
@@ -44,7 +46,8 @@ func run() error {
 	errorCh := make(chan error)
 	defer close(errorCh)
 
-	go func() { errorCh <- srv.Listen() }()
+	go func() { srv.Workers(errorCh, sig) }()
+	go func() { srv.Listen(errorCh) }()
 
 	select {
 	case <-sig:

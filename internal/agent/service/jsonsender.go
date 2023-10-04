@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"compress/gzip"
 	"go-metrics/internal/models"
 	"net/http"
 	"net/url"
@@ -34,12 +35,27 @@ func (s JSONSender) SendMemStatsMetric(metricType, metricName, metricValue strin
 	}
 
 	jsonPayload, err := m.MarshalJSON()
-
 	if err != nil {
 		return err
 	}
 
-	body := bytes.NewReader(jsonPayload)
+	// Создание нового буфера для хранения сжатых данных
+	var gzippedPayload bytes.Buffer
+	gzw := gzip.NewWriter(&gzippedPayload)
+
+	// Запись JSON-полезной нагрузки в сжатый буфер
+	_, err = gzw.Write(jsonPayload)
+	if err != nil {
+		return err
+	}
+
+	err = gzw.Close()
+	if err != nil {
+		return err
+	}
+
+	// Создание нового Reader из сжатого буфера для отправки в запросе
+	gzippedBody := bytes.NewReader(gzippedPayload.Bytes())
 
 	u := &url.URL{
 		Scheme: "http",
@@ -48,7 +64,16 @@ func (s JSONSender) SendMemStatsMetric(metricType, metricName, metricValue strin
 
 	u.Path = path.Join("update") + "/"
 
-	resp, err := http.Post(u.String(), "application/json", body)
+	// Установка заголовка Content-Encoding для указания использования сжатия gzip
+	req, err := http.NewRequest("POST", u.String(), gzippedBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/json")
+
+	// Отправка запроса с сжатым телом
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
