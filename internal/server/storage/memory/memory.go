@@ -76,6 +76,9 @@ func (m *Memory) writeToFile(data []byte) error {
 func (m *Memory) Restore() error {
 
 	data, err := m.readFromFile()
+	if err != nil {
+		return err
+	}
 
 	if len(data) == 0 {
 		return nil
