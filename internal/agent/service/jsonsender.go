@@ -29,7 +29,15 @@ func (s JSONSender) SendMemStatsMetric(metricType, metricName, metricValue strin
 	m, err := models.NewMetricsFactory().
 		MakeFromMapForUpdateMetrics(vars)
 
+	if err != nil {
+		return err
+	}
+
 	jsonPayload, err := m.MarshalJSON()
+
+	if err != nil {
+		return err
+	}
 
 	body := bytes.NewReader(jsonPayload)
 

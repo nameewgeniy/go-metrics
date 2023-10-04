@@ -67,6 +67,11 @@ func (m RuntimeMetrics) MetricsTracked() []metricsTracked {
 		},
 		{
 			mType: internal.GaugeType,
+			name:  "NextGC",
+			value: MetricsValueToString(m.memStats.m.NextGC),
+		},
+		{
+			mType: internal.GaugeType,
 			name:  "BuckHashSys",
 			value: MetricsValueToString(m.memStats.m.BuckHashSys),
 		},

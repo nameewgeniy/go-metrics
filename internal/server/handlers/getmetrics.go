@@ -37,6 +37,11 @@ func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
 	val, err := m.ValueByType()
 
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	_, err = w.Write([]byte(val))
 
 	if err != nil {
@@ -49,6 +54,8 @@ func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h MuxHandlers) GetMetricsJSONHandle(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("content-type", "application/json")
 
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -91,7 +98,6 @@ func (h MuxHandlers) GetMetricsJSONHandle(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
