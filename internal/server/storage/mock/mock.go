@@ -38,3 +38,11 @@ func (m *MockStorage) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	args := m.Called()
 	return args.Get(0).([]storage.MetricsItemCounter), args.Error(1)
 }
+
+func (m *MockStorage) Restore() error {
+	return nil
+}
+
+func (m *MockStorage) Snapshot() error {
+	return nil
+}

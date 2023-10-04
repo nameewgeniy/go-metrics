@@ -2,12 +2,13 @@ package memory
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go-metrics/internal/server/conf"
 	"go-metrics/internal/server/storage"
 	"testing"
 )
 
 func TestMemory_Add(t *testing.T) {
-	m := NewMemory()
+	m := NewMemory(conf.NewStorageConf("tmp/test.json"))
 
 	// Тестирование добавления счетчика
 	counter := storage.MetricsItemCounter{
