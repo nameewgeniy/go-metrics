@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/gorilla/mux"
-	"go-metrics/internal/logger/middleware"
+	"go-metrics/internal/server/handlers/middleware"
 	"net/http"
 	"time"
 )
@@ -35,13 +35,13 @@ func NewServer(c ServerConfig, h Handlers) *Server {
 func (s Server) Listen() error {
 
 	r := mux.NewRouter()
-	r.Handle("/", middleware.RequestLogger(s.h.ViewMetricsHandle)).Methods(http.MethodGet)
+	r.Handle("/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.ViewMetricsHandle))).Methods(http.MethodGet)
 
-	r.Handle("/update/", middleware.RequestLogger(s.h.UpdateMetricsJSONHandle)).Methods(http.MethodPost, http.MethodOptions)
-	r.Handle("/value/", middleware.RequestLogger(s.h.GetMetricsJSONHandle)).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/update/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsJSONHandle))).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/value/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsJSONHandle))).Methods(http.MethodPost, http.MethodOptions)
 
-	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(s.h.UpdateMetricsHandle)).Methods(http.MethodPost, http.MethodOptions)
-	r.Handle("/value/{type}/{name}", middleware.RequestLogger(s.h.GetMetricsHandle)).Methods(http.MethodGet)
+	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsHandle))).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/value/{type}/{name}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsHandle))).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      r,

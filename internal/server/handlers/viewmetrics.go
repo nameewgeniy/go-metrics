@@ -7,6 +7,8 @@ import (
 
 func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("content-type", "text/html; charset=utf-8")
+
 	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -26,8 +28,6 @@ func (h MuxHandlers) ViewMetricsHandle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
 }
 
 func (h MuxHandlers) makeMetricsTemplateData() (map[string]any, error) {
