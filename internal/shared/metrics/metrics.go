@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"fmt"
-	"go-metrics/internal"
+	"go-metrics/internal/shared"
 	"strconv"
 )
 
@@ -15,9 +15,9 @@ type Metrics struct {
 
 func (m Metrics) ValueByType() (string, error) {
 	switch m.MType {
-	case internal.CounterType:
+	case shared.CounterType:
 		return strconv.FormatInt(*m.Delta, 10), nil
-	case internal.GaugeType:
+	case shared.GaugeType:
 		return strconv.FormatFloat(*m.Value, 'f', -1, 64), nil
 	default:
 		return "", fmt.Errorf("unsupported metrics type: %s", m.MType)

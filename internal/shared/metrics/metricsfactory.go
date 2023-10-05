@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"errors"
-	"go-metrics/internal"
+	"go-metrics/internal/shared"
 	"strconv"
 )
 
@@ -27,14 +27,14 @@ func (f *MetricsFactory) MakeFromMapForUpdateMetrics(vars map[string]string) (*M
 	}
 
 	switch m.MType {
-	case internal.CounterType:
+	case shared.CounterType:
 		numValue, err := strconv.ParseInt(vars["value"], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 		m.Delta = &numValue
 
-	case internal.GaugeType:
+	case shared.GaugeType:
 		numValue, err := strconv.ParseFloat(vars["value"], 64)
 		if err != nil {
 			return nil, err

@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	"go-metrics/internal"
 	"go-metrics/internal/server/handlers/strategy"
+	"go-metrics/internal/shared"
 	"go-metrics/internal/shared/metrics"
 	"io"
 	"net/http"
@@ -83,8 +83,8 @@ func (h MuxHandlers) UpdateMetricsJSONHandle(w http.ResponseWriter, r *http.Requ
 func (h MuxHandlers) updateMetrics(metrics metrics.Metrics) error {
 
 	strategies := map[string]strategy.MetricsItemStrategy{
-		internal.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
-		internal.CounterType: &strategy.CounterMetricsItemStrategy{},
+		shared.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
+		shared.CounterType: &strategy.CounterMetricsItemStrategy{},
 	}
 
 	chosenStrategy, ok := strategies[metrics.MType]

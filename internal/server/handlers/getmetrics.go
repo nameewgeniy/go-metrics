@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
-	"go-metrics/internal"
 	"go-metrics/internal/server/handlers/strategy"
 	"go-metrics/internal/server/storage"
+	"go-metrics/internal/shared"
 	"go-metrics/internal/shared/metrics"
 	"io"
 	"net/http"
@@ -104,8 +104,8 @@ func (h MuxHandlers) GetMetricsJSONHandle(w http.ResponseWriter, r *http.Request
 func (h MuxHandlers) getMetrics(m *metrics.Metrics) error {
 
 	strategies := map[string]strategy.MetricsItemStrategy{
-		internal.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
-		internal.CounterType: &strategy.CounterMetricsItemStrategy{},
+		shared.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
+		shared.CounterType: &strategy.CounterMetricsItemStrategy{},
 	}
 
 	strtg, ok := strategies[m.MType]

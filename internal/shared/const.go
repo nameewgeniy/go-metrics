@@ -1,4 +1,4 @@
-package internal
+package shared
 
 const (
 	CounterType = "counter"

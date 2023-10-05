@@ -27,4 +27,4 @@ test.all: build.all
 
 # make test.i i=1
 test.i: build.all
-	@metricstest -test.v -server-port=8080 -source-path=. -file-storage-path=tmp/metrics-db.json -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server -test.run=^TestIteration$(i)[AB]*$
+	@metricstest -test.v -server-port=8080 -source-path=. -file-storage-path=/home/work/go/src/go-metrics/tmp/metrics-db.json -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server -test.run=^TestIteration$(i)[AB]*$

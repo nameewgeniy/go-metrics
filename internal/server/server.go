@@ -9,6 +9,7 @@ import (
 	"go-metrics/internal/server/storage/memory"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"time"
 )
 
@@ -70,6 +71,7 @@ func (s Server) Workers(ctx context.Context, errorCh chan<- error, sig chan os.S
 
 	defer func() {
 		if r := recover(); r != nil {
+			fmt.Sprintf("%v", debug.Stack())
 			errorCh <- fmt.Errorf("snapshot panic: %v", r)
 		}
 	}()
