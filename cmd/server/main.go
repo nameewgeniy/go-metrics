@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"go-metrics/internal/server"
 	"go-metrics/internal/server/conf"
 	"go-metrics/internal/server/handlers"
 	"go-metrics/internal/server/storage/memory"
 	"go-metrics/internal/shared/logger"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ func main() {
 }
 
 func run() error {
+
 	f, err := parseFlags()
 	if err != nil {
 		return err
@@ -43,27 +45,37 @@ func run() error {
 		return err
 	}
 
-	sig := make(chan os.Signal, 1)
-	defer close(sig)
-
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	defer signal.Stop(sig)
-
 	errorCh := make(chan error)
 	defer close(errorCh)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	go func() { srv.Workers(ctx, errorCh, sig) }()
-	go func() { srv.Listen(ctx, errorCh) }()
+	eg, errCtx := errgroup.WithContext(ctx)
+
+	eg.Go(func() error {
+		defer handlePanic(errorCh, cancel)
+		return srv.Snapshot(errCtx)
+	})
+
+	eg.Go(func() error {
+		defer handlePanic(errorCh, cancel)
+		return srv.Listen(errCtx)
+	})
+
+	go func() {
+		errorCh <- eg.Wait()
+	}()
 
 	select {
-	case <-ctx.Done():
-		return errors.New("stop app")
-	case <-sig:
-		return errors.New("stop app")
 	case err = <-errorCh:
 		return err
+	}
+}
+
+func handlePanic(errorCh chan<- error, stop context.CancelFunc) {
+	if r := recover(); r != nil {
+		errorCh <- fmt.Errorf("panic: %v", r)
+		stop()
 	}
 }

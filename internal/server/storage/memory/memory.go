@@ -48,6 +48,10 @@ func (m *Memory) Snapshot() error {
 		return err
 	}
 
+	if len(gauges) == 0 && len(counters) == 0 {
+		return nil
+	}
+
 	items := snapshotItems{
 		Gauge:   gauges,
 		Counter: counters,

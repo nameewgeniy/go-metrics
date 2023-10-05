@@ -2,13 +2,11 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"github.com/gorilla/mux"
 	"go-metrics/internal/server/handlers/middleware"
 	"go-metrics/internal/server/storage"
 	"go-metrics/internal/server/storage/memory"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -43,7 +41,7 @@ func NewServer(c ServerConfig, h Handlers, s storage.Storage, sn memory.Snapshot
 	}
 }
 
-func (s Server) Listen(_ context.Context, errorCh chan<- error) {
+func (s Server) Listen(ctx context.Context) error {
 
 	r := mux.NewRouter()
 	r.Handle("/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.ViewMetricsHandle))).Methods(http.MethodGet)
@@ -61,18 +59,19 @@ func (s Server) Listen(_ context.Context, errorCh chan<- error) {
 		ReadTimeout:  5 * time.Second,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		errorCh <- err
+	go func() {
+		<-ctx.Done()
+		_ = srv.Shutdown(context.Background())
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
 	}
+
+	return nil
 }
 
-func (s Server) Workers(ctx context.Context, errorCh chan<- error, sig chan os.Signal) {
-
-	defer func() {
-		if r := recover(); r != nil {
-			errorCh <- fmt.Errorf("snapshot panic: %v", r)
-		}
-	}()
+func (s Server) Snapshot(ctx context.Context) error {
 
 	// Запускаем интервальный сброс данных в файл
 	snapshotTicker := time.NewTicker(s.cnf.StoreInterval())
@@ -80,15 +79,11 @@ func (s Server) Workers(ctx context.Context, errorCh chan<- error, sig chan os.S
 
 	for {
 		select {
-		case <-sig:
-			_ = s.sn.Snapshot()
-			return
 		case <-ctx.Done():
-			_ = s.sn.Snapshot()
-			return
+			return s.sn.Snapshot()
 		case <-snapshotTicker.C:
 			if err := s.sn.Snapshot(); err != nil {
-				errorCh <- err
+				return err
 			}
 		}
 	}
