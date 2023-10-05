@@ -1,13 +1,13 @@
 package strategy
 
 import (
-	"go-metrics/internal/models"
 	"go-metrics/internal/server/storage"
+	"go-metrics/internal/shared/metrics"
 )
 
 type GaugeMetricsItemStrategy struct{}
 
-func (ms *GaugeMetricsItemStrategy) AddMetric(m models.Metrics, s storage.Storage) error {
+func (ms *GaugeMetricsItemStrategy) AddMetric(m metrics.Metrics, s storage.Storage) error {
 
 	it := storage.MetricsItemGauge{
 		Name:  m.ID,
@@ -17,7 +17,7 @@ func (ms *GaugeMetricsItemStrategy) AddMetric(m models.Metrics, s storage.Storag
 	return s.AddGauge(it)
 }
 
-func (ms *GaugeMetricsItemStrategy) GetMetric(m *models.Metrics, s storage.Storage) error {
+func (ms *GaugeMetricsItemStrategy) GetMetric(m *metrics.Metrics, s storage.Storage) error {
 	item, err := s.FindGaugeItem(m.ID)
 
 	if err != nil {

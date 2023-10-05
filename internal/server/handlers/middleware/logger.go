@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"go-metrics/internal/logger"
-	"go-metrics/internal/server/handlers/responsewriter"
+	"go-metrics/internal/server/handlers/middleware/internal/responsewriter"
+	"go-metrics/internal/shared/logger"
 	"go.uber.org/zap"
 	"net/http"
 	"time"

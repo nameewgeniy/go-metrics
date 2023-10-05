@@ -1,13 +1,13 @@
 package strategy
 
 import (
-	"go-metrics/internal/models"
 	"go-metrics/internal/server/storage"
+	"go-metrics/internal/shared/metrics"
 )
 
 type CounterMetricsItemStrategy struct{}
 
-func (ms *CounterMetricsItemStrategy) AddMetric(m models.Metrics, s storage.Storage) error {
+func (ms *CounterMetricsItemStrategy) AddMetric(m metrics.Metrics, s storage.Storage) error {
 
 	it := storage.MetricsItemCounter{
 		Name:  m.ID,
@@ -17,7 +17,7 @@ func (ms *CounterMetricsItemStrategy) AddMetric(m models.Metrics, s storage.Stor
 	return s.AddCounter(it)
 }
 
-func (ms *CounterMetricsItemStrategy) GetMetric(m *models.Metrics, s storage.Storage) error {
+func (ms *CounterMetricsItemStrategy) GetMetric(m *metrics.Metrics, s storage.Storage) error {
 	item, err := s.FindCounterItem(m.ID)
 
 	if err != nil {

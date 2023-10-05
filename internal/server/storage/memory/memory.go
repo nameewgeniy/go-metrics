@@ -12,6 +12,11 @@ type StorageConfig interface {
 	FileStoragePath() string
 }
 
+type SnapshotStorage interface {
+	Restore() error
+	Snapshot() error
+}
+
 type Memory struct {
 	Gauge   sync.Map
 	Counter sync.Map

@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
-	"go-metrics/internal/logger"
 	"go-metrics/internal/server"
 	"go-metrics/internal/server/conf"
 	"go-metrics/internal/server/handlers"
 	"go-metrics/internal/server/storage/memory"
+	"go-metrics/internal/shared/logger"
 	"log"
 	"os"
 	"os/signal"
@@ -35,7 +36,12 @@ func run() error {
 	handler := handlers.NewMuxHandlers(store)
 
 	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
-	srv := server.NewServer(cnf, handler, store)
+	srv := server.NewServer(cnf, handler, store, store)
+
+	err = srv.Restore()
+	if err != nil {
+		return err
+	}
 
 	sig := make(chan os.Signal, 1)
 	defer close(sig)
@@ -46,10 +52,15 @@ func run() error {
 	errorCh := make(chan error)
 	defer close(errorCh)
 
-	go func() { srv.Workers(errorCh, sig) }()
-	go func() { srv.Listen(errorCh) }()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() { srv.Workers(ctx, errorCh, sig) }()
+	go func() { srv.Listen(ctx, errorCh) }()
 
 	select {
+	case <-ctx.Done():
+		return errors.New("stop app")
 	case <-sig:
 		return errors.New("stop app")
 	case err = <-errorCh:

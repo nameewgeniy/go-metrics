@@ -3,9 +3,9 @@ package strategy
 import (
 	"errors"
 	"github.com/stretchr/testify/assert"
-	"go-metrics/internal/models"
 	"go-metrics/internal/server/storage"
 	"go-metrics/internal/server/storage/mock"
+	"go-metrics/internal/shared/metrics"
 	"testing"
 )
 
@@ -15,7 +15,7 @@ func TestAddMetric_SuccessGauge(t *testing.T) {
 	name := "test"
 	value := float64(10)
 
-	m := models.Metrics{
+	m := metrics.Metrics{
 		ID:    name,
 		MType: "gauge",
 		Delta: nil,
@@ -46,7 +46,7 @@ func TestAddMetric_StorageErrorGauge(t *testing.T) {
 	value := float64(10)
 	expectedError := errors.New("storage error")
 
-	m := models.Metrics{
+	m := metrics.Metrics{
 		ID:    name,
 		MType: "gauge",
 		Delta: nil,

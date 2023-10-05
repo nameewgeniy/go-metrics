@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"go-metrics/internal"
-	"go-metrics/internal/models"
 	"go-metrics/internal/server/handlers/strategy"
 	"go-metrics/internal/server/storage"
+	"go-metrics/internal/shared/metrics"
 	"io"
 	"net/http"
 )
 
 func (h MuxHandlers) GetMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
-	m, err := models.NewMetricsFactory().
+	m, err := metrics.NewMetricsFactory().
 		MakeFromMapForGetMetrics(mux.Vars(r))
 
 	if err != nil {
@@ -63,7 +63,7 @@ func (h MuxHandlers) GetMetricsJSONHandle(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	m, err := models.NewMetricsFactory().
+	m, err := metrics.NewMetricsFactory().
 		MakeFromBytesForGetMetrics(bytes)
 
 	if err != nil {
@@ -101,7 +101,7 @@ func (h MuxHandlers) GetMetricsJSONHandle(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h MuxHandlers) getMetrics(m *models.Metrics) error {
+func (h MuxHandlers) getMetrics(m *metrics.Metrics) error {
 
 	strategies := map[string]strategy.MetricsItemStrategy{
 		internal.GaugeType:   &strategy.GaugeMetricsItemStrategy{},

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"compress/gzip"
-	"go-metrics/internal/server/handlers/responsewriter"
+	"go-metrics/internal/server/handlers/middleware/internal/responsewriter"
 	"io"
 	"net/http"
 	"strings"

@@ -24,7 +24,4 @@ type Storage interface {
 	AddCounter(MetricsItemCounter) error
 	FindCounterItem(name string) (MetricsItemCounter, error)
 	FindCounterAll() ([]MetricsItemCounter, error)
-
-	Restore() error
-	Snapshot() error
 }

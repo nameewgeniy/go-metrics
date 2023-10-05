@@ -3,9 +3,9 @@ package strategy
 import (
 	"errors"
 	"github.com/stretchr/testify/assert"
-	"go-metrics/internal/models"
 	"go-metrics/internal/server/storage"
 	"go-metrics/internal/server/storage/mock"
+	"go-metrics/internal/shared/metrics"
 	"testing"
 )
 
@@ -14,7 +14,7 @@ func TestAddMetric_Success(t *testing.T) {
 	name := "test"
 	delta := int64(10)
 
-	m := models.Metrics{
+	m := metrics.Metrics{
 		ID:    name,
 		MType: "counter",
 		Delta: &delta,
@@ -44,7 +44,7 @@ func TestAddMetric_StorageError(t *testing.T) {
 	name := "test"
 	delta := int64(10)
 
-	m := models.Metrics{
+	m := metrics.Metrics{
 		ID:    name,
 		MType: "counter",
 		Delta: &delta,

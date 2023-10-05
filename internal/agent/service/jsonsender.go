@@ -2,7 +2,7 @@ package service
 
 import (
 	"bytes"
-	"go-metrics/internal/models"
+	"go-metrics/internal/shared/metrics"
 	"net/http"
 	"net/url"
 	"path"
@@ -26,7 +26,7 @@ func (s JSONSender) SendMemStatsMetric(metricType, metricName, metricValue strin
 		"value": metricValue,
 	}
 
-	m, err := models.NewMetricsFactory().
+	m, err := metrics.NewMetricsFactory().
 		MakeFromMapForUpdateMetrics(vars)
 
 	if err != nil {

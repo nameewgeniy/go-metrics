@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"go-metrics/internal"
-	"go-metrics/internal/models"
 	"go-metrics/internal/server/handlers/strategy"
+	"go-metrics/internal/shared/metrics"
 	"io"
 	"net/http"
 )
 
 func (h MuxHandlers) UpdateMetricsHandle(w http.ResponseWriter, r *http.Request) {
 
-	m, err := models.NewMetricsFactory().
+	m, err := metrics.NewMetricsFactory().
 		MakeFromMapForUpdateMetrics(mux.Vars(r))
 
 	if err != nil {
@@ -41,7 +41,7 @@ func (h MuxHandlers) UpdateMetricsJSONHandle(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	m, err := models.NewMetricsFactory().
+	m, err := metrics.NewMetricsFactory().
 		MakeFromBytesForUpdateMetrics(bytes)
 
 	if err != nil {
@@ -80,7 +80,7 @@ func (h MuxHandlers) UpdateMetricsJSONHandle(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h MuxHandlers) updateMetrics(metrics models.Metrics) error {
+func (h MuxHandlers) updateMetrics(metrics metrics.Metrics) error {
 
 	strategies := map[string]strategy.MetricsItemStrategy{
 		internal.GaugeType:   &strategy.GaugeMetricsItemStrategy{},
