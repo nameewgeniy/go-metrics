@@ -67,10 +67,7 @@ func run() error {
 		errorCh <- eg.Wait()
 	}()
 
-	select {
-	case err = <-errorCh:
-		return err
-	}
+	return <-errorCh
 }
 
 func handlePanic(errorCh chan<- error, stop context.CancelFunc) {
