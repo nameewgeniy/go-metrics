@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
+	"go-metrics/internal/server/storage"
 )
 
 func (m *Memory) AddGauge(gauge storage.MetricsItemGauge) error {

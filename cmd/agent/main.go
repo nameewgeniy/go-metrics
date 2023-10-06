@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/nameewgeniy/go-metrics/internal/agent"
-	"github.com/nameewgeniy/go-metrics/internal/agent/conf"
-	"github.com/nameewgeniy/go-metrics/internal/agent/service"
+	"go-metrics/internal/agent"
+	"go-metrics/internal/agent/conf"
+	"go-metrics/internal/agent/service"
 	"log"
 	"os"
 	"os/signal"
@@ -26,7 +26,7 @@ func run() error {
 	}
 
 	scf := conf.NewSenderConfig(f.pushAddress)
-	snd := service.NewMetricSender(scf)
+	snd := service.NewMetricJSONSender(scf)
 	rm := service.NewRuntimeMetrics(snd)
 
 	cf := conf.NewAgentConf(f.pollIntervalSec, f.reportIntervalSec)

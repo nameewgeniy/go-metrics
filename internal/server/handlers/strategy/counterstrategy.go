@@ -1,32 +1,30 @@
 package strategy
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
-	"strconv"
+	"go-metrics/internal/server/storage"
+	"go-metrics/internal/shared/metrics"
 )
 
 type CounterMetricsItemStrategy struct{}
 
-func (ms *CounterMetricsItemStrategy) AddMetric(name, value string, s storage.Storage) error {
-	numValue, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return err
-	}
+func (ms *CounterMetricsItemStrategy) AddMetric(m metrics.Metrics, s storage.Storage) error {
 
 	it := storage.MetricsItemCounter{
-		Name:  name,
-		Value: numValue,
+		Name:  m.ID,
+		Value: *m.Delta,
 	}
 
 	return s.AddCounter(it)
 }
 
-func (ms *CounterMetricsItemStrategy) GetMetric(name string, s storage.Storage) (string, error) {
-	item, err := s.FindCounterItem(name)
+func (ms *CounterMetricsItemStrategy) GetMetric(m *metrics.Metrics, s storage.Storage) error {
+	item, err := s.FindCounterItem(m.ID)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return strconv.FormatInt(item.Value, 10), nil
+	m.Delta = &item.Value
+
+	return nil
 }

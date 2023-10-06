@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
 	"github.com/stretchr/testify/mock"
+	"go-metrics/internal/server/storage"
 )
 
 type MockStorage struct {
@@ -37,4 +37,12 @@ func (m *MockStorage) FindCounterItem(name string) (storage.MetricsItemCounter, 
 func (m *MockStorage) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	args := m.Called()
 	return args.Get(0).([]storage.MetricsItemCounter), args.Error(1)
+}
+
+func (m *MockStorage) Restore() error {
+	return nil
+}
+
+func (m *MockStorage) Snapshot() error {
+	return nil
 }

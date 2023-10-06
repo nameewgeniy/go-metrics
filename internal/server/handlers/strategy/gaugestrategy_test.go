@@ -2,16 +2,26 @@ package strategy
 
 import (
 	"errors"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage/mock"
 	"github.com/stretchr/testify/assert"
+	"go-metrics/internal/server/storage"
+	"go-metrics/internal/server/storage/mock"
+	"go-metrics/internal/shared/metrics"
 	"testing"
 )
 
 func TestAddMetric_SuccessGauge(t *testing.T) {
+
 	// Arrange
 	name := "test"
-	value := "10"
+	value := float64(10)
+
+	m := metrics.Metrics{
+		ID:    name,
+		MType: "gauge",
+		Delta: nil,
+		Value: &value,
+	}
+
 	expectedItem := storage.MetricsItemGauge{
 		Name:  name,
 		Value: 10.0,
@@ -23,33 +33,25 @@ func TestAddMetric_SuccessGauge(t *testing.T) {
 	strategy := &GaugeMetricsItemStrategy{}
 
 	// Act
-	err := strategy.AddMetric(name, value, storageMock)
+	err := strategy.AddMetric(m, storageMock)
 
 	// Assert
 	assert.NoError(t, err)
 	storageMock.AssertCalled(t, "AddGauge", expectedItem)
 }
 
-func TestAddMetric_ParseErrorGauge(t *testing.T) {
-	// Arrange
-	name := "test"
-	value := "not_an_float"
-
-	storageMock := &mock.MockStorage{}
-	strategy := &GaugeMetricsItemStrategy{}
-
-	// Act
-	err := strategy.AddMetric(name, value, storageMock)
-
-	// Assert
-	assert.Error(t, err)
-}
-
 func TestAddMetric_StorageErrorGauge(t *testing.T) {
 	// Arrange
 	name := "test"
-	value := "10.0"
+	value := float64(10)
 	expectedError := errors.New("storage error")
+
+	m := metrics.Metrics{
+		ID:    name,
+		MType: "gauge",
+		Delta: nil,
+		Value: &value,
+	}
 
 	expectedItem := storage.MetricsItemGauge{
 		Name:  name,
@@ -62,7 +64,7 @@ func TestAddMetric_StorageErrorGauge(t *testing.T) {
 	strategy := &GaugeMetricsItemStrategy{}
 
 	// Act
-	err := strategy.AddMetric(name, value, storageMock)
+	err := strategy.AddMetric(m, storageMock)
 
 	// Assert
 	assert.Error(t, err)

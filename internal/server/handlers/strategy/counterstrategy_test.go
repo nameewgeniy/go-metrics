@@ -2,19 +2,28 @@ package strategy
 
 import (
 	"errors"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage/mock"
 	"github.com/stretchr/testify/assert"
+	"go-metrics/internal/server/storage"
+	"go-metrics/internal/server/storage/mock"
+	"go-metrics/internal/shared/metrics"
 	"testing"
 )
 
 func TestAddMetric_Success(t *testing.T) {
-	// Arrange
+
 	name := "test"
-	value := "10"
+	delta := int64(10)
+
+	m := metrics.Metrics{
+		ID:    name,
+		MType: "counter",
+		Delta: &delta,
+		Value: nil,
+	}
+
 	expectedItem := storage.MetricsItemCounter{
 		Name:  name,
-		Value: 10,
+		Value: delta,
 	}
 
 	storageMock := &mock.MockStorage{}
@@ -23,32 +32,25 @@ func TestAddMetric_Success(t *testing.T) {
 	strategy := &CounterMetricsItemStrategy{}
 
 	// Act
-	err := strategy.AddMetric(name, value, storageMock)
+	err := strategy.AddMetric(m, storageMock)
 
 	// Assert
 	assert.NoError(t, err)
 	storageMock.AssertCalled(t, "AddCounter", expectedItem)
 }
 
-func TestAddMetric_ParseError(t *testing.T) {
-	// Arrange
-	name := "test"
-	value := "not_an_int"
-
-	storageMock := &mock.MockStorage{}
-	strategy := &CounterMetricsItemStrategy{}
-
-	// Act
-	err := strategy.AddMetric(name, value, storageMock)
-
-	// Assert
-	assert.Error(t, err)
-}
-
 func TestAddMetric_StorageError(t *testing.T) {
 	// Arrange
 	name := "test"
-	value := "10"
+	delta := int64(10)
+
+	m := metrics.Metrics{
+		ID:    name,
+		MType: "counter",
+		Delta: &delta,
+		Value: nil,
+	}
+
 	expectedError := errors.New("storage error")
 
 	expectedItem := storage.MetricsItemCounter{
@@ -62,7 +64,7 @@ func TestAddMetric_StorageError(t *testing.T) {
 	strategy := &CounterMetricsItemStrategy{}
 
 	// Act
-	err := strategy.AddMetric(name, value, storageMock)
+	err := strategy.AddMetric(m, storageMock)
 
 	// Assert
 	assert.Error(t, err)

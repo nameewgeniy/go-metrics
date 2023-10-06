@@ -1,32 +1,30 @@
 package strategy
 
 import (
-	"github.com/nameewgeniy/go-metrics/internal/server/storage"
-	"strconv"
+	"go-metrics/internal/server/storage"
+	"go-metrics/internal/shared/metrics"
 )
 
 type GaugeMetricsItemStrategy struct{}
 
-func (ms *GaugeMetricsItemStrategy) AddMetric(name, value string, s storage.Storage) error {
-	numValue, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return err
-	}
+func (ms *GaugeMetricsItemStrategy) AddMetric(m metrics.Metrics, s storage.Storage) error {
 
 	it := storage.MetricsItemGauge{
-		Name:  name,
-		Value: numValue,
+		Name:  m.ID,
+		Value: *m.Value,
 	}
 
 	return s.AddGauge(it)
 }
 
-func (ms *GaugeMetricsItemStrategy) GetMetric(name string, s storage.Storage) (string, error) {
-	item, err := s.FindGaugeItem(name)
+func (ms *GaugeMetricsItemStrategy) GetMetric(m *metrics.Metrics, s storage.Storage) error {
+	item, err := s.FindGaugeItem(m.ID)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return strconv.FormatFloat(item.Value, 'f', -1, 64), nil
+	m.Value = &item.Value
+
+	return nil
 }

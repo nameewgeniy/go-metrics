@@ -1,11 +1,14 @@
 package main
 
 import (
-	"errors"
-	"github.com/nameewgeniy/go-metrics/internal/server"
-	"github.com/nameewgeniy/go-metrics/internal/server/conf"
-	"github.com/nameewgeniy/go-metrics/internal/server/handlers"
-	"github.com/nameewgeniy/go-metrics/internal/server/storage/memory"
+	"context"
+	"fmt"
+	"go-metrics/internal/server"
+	"go-metrics/internal/server/conf"
+	"go-metrics/internal/server/handlers"
+	"go-metrics/internal/server/storage/memory"
+	"go-metrics/internal/shared/logger"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"os"
 	"os/signal"
@@ -19,32 +22,57 @@ func main() {
 }
 
 func run() error {
+
 	f, err := parseFlags()
 	if err != nil {
 		return err
 	}
 
-	store := memory.NewMemory()
+	if err = logger.Initialize(f.logLevel); err != nil {
+		return err
+	}
+
+	mcfg := conf.NewStorageConf(f.fileStoragePath)
+	store := memory.NewMemory(mcfg)
+
 	handler := handlers.NewMuxHandlers(store)
 
-	cnf := conf.NewServerConf(f.addr)
-	srv := server.NewServer(cnf, handler)
+	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
+	srv := server.NewServer(cnf, handler, store, store)
 
-	sig := make(chan os.Signal, 1)
-	defer close(sig)
-
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	defer signal.Stop(sig)
+	err = srv.Restore()
+	if err != nil {
+		return err
+	}
 
 	errorCh := make(chan error)
 	defer close(errorCh)
 
-	go func() { errorCh <- srv.Listen() }()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	select {
-	case <-sig:
-		return errors.New("stop app")
-	case err = <-errorCh:
-		return err
+	eg, errCtx := errgroup.WithContext(ctx)
+
+	eg.Go(func() error {
+		defer handlePanic(errorCh, cancel)
+		return srv.Snapshot(errCtx)
+	})
+
+	eg.Go(func() error {
+		defer handlePanic(errorCh, cancel)
+		return srv.Listen(errCtx)
+	})
+
+	go func() {
+		errorCh <- eg.Wait()
+	}()
+
+	return <-errorCh
+}
+
+func handlePanic(errorCh chan<- error, stop context.CancelFunc) {
+	if r := recover(); r != nil {
+		errorCh <- fmt.Errorf("panic: %v", r)
+		stop()
 	}
 }
