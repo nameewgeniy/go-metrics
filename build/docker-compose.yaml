@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+
+  ########## POSTGRES ##########
+  postgres:
+    image: wodby/postgres:13
+    stop_grace_period: 30s
+    environment:
+      POSTGRES_MAX_CONNECTIONS: 1000
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: db
+    volumes:
+      - postgres_data
+    ports:
+      - "5442:5432"
+    networks:
+      metrics:
+
+networks:
+  metrics:
+    driver: bridge
+    ipam:
+      driver: default
+
+volumes:
+  postgres_data:

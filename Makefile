@@ -27,4 +27,12 @@ test.all: build.all
 
 # make test.i i=1
 test.i: build.all
-	@metricstest -test.v -server-port=8080 -source-path=. -file-storage-path=/home/work/go/src/go-metrics/tmp/metrics-db.json -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server -test.run=^TestIteration$(i)[AB]*$
+	@metricstest -test.v -server-port=8080 \
+		-source-path=. -file-storage-path=/home/work/go/src/go-metrics/tmp/metrics-db.json \
+		-agent-binary-path=cmd/agent/agent  \
+		-database-dsn='postgres://user:password@localhost:5442/db?sslmode=disable' \
+		-binary-path=cmd/server/server \
+		-test.run=^TestIteration$(i)[AB]*$
+
+db.up:
+	@docker-compose -f build/docker-compose.yaml up -d

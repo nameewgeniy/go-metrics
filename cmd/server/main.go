@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go-metrics/internal/server"
 	"go-metrics/internal/server/conf"
 	"go-metrics/internal/server/handlers"
 	"go-metrics/internal/server/storage/memory"
+	"go-metrics/internal/server/storage/pg"
 	"go-metrics/internal/shared/logger"
 	"golang.org/x/sync/errgroup"
 	"log"
@@ -32,13 +35,21 @@ func run() error {
 		return err
 	}
 
-	mcfg := conf.NewStorageConf(f.fileStoragePath)
-	store := memory.NewMemory(mcfg)
+	db, err := initDbConnect(f.databaseDsn)
+	if err != nil {
+		return err
+	}
 
-	handler := handlers.NewMuxHandlers(store)
+	pgconf := conf.NewPgStorageConf(db)
+	pgstore := pg.NewPgStorage(pgconf)
+
+	memcfg := conf.NewMemoryStorageConf(f.fileStoragePath)
+	memstore := memory.NewMemoryStorage(memcfg)
+
+	handler := handlers.NewMuxHandlers(memstore, pgstore)
 
 	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
-	srv := server.NewServer(cnf, handler, store, store)
+	srv := server.NewServer(cnf, handler, memstore, memstore)
 
 	err = srv.Restore()
 	if err != nil {
@@ -68,6 +79,15 @@ func run() error {
 	}()
 
 	return <-errorCh
+}
+
+func initDbConnect(databaseDsn string) (*sql.DB, error) {
+	conn, err := sql.Open("pgx", databaseDsn)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 func handlePanic(errorCh chan<- error, stop context.CancelFunc) {

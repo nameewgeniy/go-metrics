@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type StorageConfig interface {
+type MemoryStorageConfig interface {
 	FileStoragePath() string
 }
 
@@ -20,7 +20,7 @@ type SnapshotStorage interface {
 type Memory struct {
 	Gauge   sync.Map
 	Counter sync.Map
-	cfg     StorageConfig
+	cfg     MemoryStorageConfig
 }
 
 type snapshotItems struct {
@@ -30,7 +30,7 @@ type snapshotItems struct {
 
 var mutex sync.Mutex
 
-func NewMemory(cfg StorageConfig) *Memory {
+func NewMemoryStorage(cfg MemoryStorageConfig) *Memory {
 	return &Memory{
 		cfg: cfg,
 	}
