@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func (h MuxHandlers) PingDbHandle(w http.ResponseWriter, r *http.Request) {
+func (h MuxHandlers) PingDBHandle(w http.ResponseWriter, r *http.Request) {
 
 	err := h.p.Ping()
 	if err != nil {

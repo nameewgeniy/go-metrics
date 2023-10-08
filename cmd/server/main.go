@@ -35,7 +35,7 @@ func run() error {
 		return err
 	}
 
-	db, err := initDbConnect(f.databaseDsn)
+	db, err := initDBConnect(f.databaseDsn)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func run() error {
 	return <-errorCh
 }
 
-func initDbConnect(databaseDsn string) (*sql.DB, error) {
+func initDBConnect(databaseDsn string) (*sql.DB, error) {
 	conn, err := sql.Open("pgx", databaseDsn)
 	if err != nil {
 		return nil, err

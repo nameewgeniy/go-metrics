@@ -24,7 +24,7 @@ type Handlers interface {
 	GetMetricsJSONHandle(http.ResponseWriter, *http.Request)
 	UpdateMetricsJSONHandle(http.ResponseWriter, *http.Request)
 
-	PingDbHandle(http.ResponseWriter, *http.Request)
+	PingDBHandle(http.ResponseWriter, *http.Request)
 }
 
 type Server struct {
@@ -54,7 +54,7 @@ func (s Server) Listen(ctx context.Context) error {
 	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsHandle))).Methods(http.MethodPost, http.MethodOptions)
 	r.Handle("/value/{type}/{name}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsHandle))).Methods(http.MethodGet)
 
-	r.Handle("/ping", middleware.RequestLogger(middleware.CompressMiddleware(s.h.PingDbHandle))).Methods(http.MethodGet)
+	r.Handle("/ping", middleware.RequestLogger(middleware.CompressMiddleware(s.h.PingDBHandle))).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      r,
