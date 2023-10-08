@@ -12,6 +12,6 @@ func NewPgStorageConf(db *sql.DB) *PgStorageConf {
 	}
 }
 
-func (c PgStorageConf) Db() *sql.DB {
+func (c PgStorageConf) DB() *sql.DB {
 	return c.db
 }
