@@ -11,19 +11,37 @@ import (
 
 func (p Pg) AddCounter(counter storage.MetricsItemCounter) error {
 
-	oldValue, err := p.FindCounterItem(counter.Name)
-
-	if err != nil && !errors.Is(err, storage.ErrItemNotFound) {
-		return err
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	existCounter, err := p.FindCounterItem(counter.Name)
+
+	if err != nil {
+		if errors.Is(err, storage.ErrItemNotFound) {
+			return p.insertCounter(ctx, counter)
+		}
+
+		return err
+	}
+
+	counter.Value += existCounter.Value
+	return p.updateCounter(ctx, counter)
+}
+
+func (p Pg) insertCounter(ctx context.Context, counter storage.MetricsItemCounter) error {
 	baseQuery := "INSERT INTO #table# (name, value) VALUES ($1, $2)"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	_, err = p.c.Db().ExecContext(ctx, preparedQuery, counter.Name, oldValue.Value+counter.Value)
+	_, err := p.c.Db().ExecContext(ctx, preparedQuery, counter.Name, counter.Value)
+
+	return err
+}
+
+func (p Pg) updateCounter(ctx context.Context, counter storage.MetricsItemCounter) error {
+	baseQuery := "UPDATE #table# SET value = $2 WHERE name = $1"
+	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
+
+	_, err := p.c.Db().ExecContext(ctx, preparedQuery, counter.Name, counter.Value)
 
 	return err
 }
