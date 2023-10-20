@@ -17,6 +17,7 @@ type flags struct {
 	storeInterval   int
 	restore         bool
 	databaseDsn     string
+	downMigrations  bool
 }
 
 func (f *flags) validate() error {
@@ -44,6 +45,7 @@ func parseFlags() (*flags, error) {
 	flag.StringVar(&f.databaseDsn, "d", "", "database dsn")
 	flag.IntVar(&f.storeInterval, "i", 300, "store interval")
 	flag.BoolVar(&f.restore, "r", true, "restore")
+	flag.BoolVar(&f.downMigrations, "dm", true, "down migrations after stop")
 	flag.Parse()
 
 	envAddr := os.Getenv("ADDRESS")

@@ -4,16 +4,16 @@ import (
 	"go-metrics/internal/server/storage"
 )
 
-type PingDb interface {
+type Ping interface {
 	Ping() error
 }
 
 type MuxHandlers struct {
 	s storage.Storage
-	p PingDb
+	p Ping
 }
 
-func NewMuxHandlers(s storage.Storage, p PingDb) *MuxHandlers {
+func NewMuxHandlers(s storage.Storage, p Ping) *MuxHandlers {
 	return &MuxHandlers{
 		s: s,
 		p: p,

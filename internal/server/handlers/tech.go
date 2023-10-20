@@ -4,12 +4,14 @@ import (
 	"net/http"
 )
 
-func (h MuxHandlers) PingDbHandle(w http.ResponseWriter, r *http.Request) {
+func (h MuxHandlers) PingHandle(w http.ResponseWriter, r *http.Request) {
 
-	err := h.p.Ping()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if h.p != nil {
+		err := h.p.Ping()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

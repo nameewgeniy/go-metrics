@@ -1,21 +1,16 @@
 package main
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"go-metrics/internal/server"
 	"go-metrics/internal/server/conf"
 	"go-metrics/internal/server/handlers"
+	"go-metrics/internal/server/storage"
 	"go-metrics/internal/server/storage/memory"
 	"go-metrics/internal/server/storage/pg"
 	"go-metrics/internal/shared/logger"
-	"golang.org/x/sync/errgroup"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -35,64 +30,31 @@ func run() error {
 		return err
 	}
 
-	db, err := initDbConnect(f.databaseDsn)
-	if err != nil {
-		return err
+	var strg storage.Storage
+	var snapshot memory.SnapshotStorage
+	var ping handlers.Ping
+
+	memcfg := conf.NewMemoryStorageConf(f.fileStoragePath, f.restore)
+	mstrg := memory.NewMemoryStorage(memcfg)
+	strg, snapshot = mstrg, mstrg
+
+	if f.databaseDsn != "" {
+
+		pgconn, err := sql.Open("pgx", f.databaseDsn)
+		defer pgconn.Close()
+		if err != nil {
+			return err
+		}
+
+		pgconf := conf.NewPgStorageConf(pgconn, f.downMigrations)
+		pstrg := pg.NewPgStorage(pgconf)
+		strg, ping = pstrg, pstrg
 	}
 
-	pgconf := conf.NewPgStorageConf(db)
-	pgstore := pg.NewPgStorage(pgconf)
-
-	memcfg := conf.NewMemoryStorageConf(f.fileStoragePath)
-	memstore := memory.NewMemoryStorage(memcfg)
-
-	handler := handlers.NewMuxHandlers(memstore, pgstore)
+	handler := handlers.NewMuxHandlers(strg, ping)
 
 	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
-	srv := server.NewServer(cnf, handler, memstore, memstore)
+	srv := server.NewServer(cnf, handler, strg, snapshot)
 
-	err = srv.Restore()
-	if err != nil {
-		return err
-	}
-
-	errorCh := make(chan error)
-	defer close(errorCh)
-
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
-
-	eg, errCtx := errgroup.WithContext(ctx)
-
-	eg.Go(func() error {
-		defer handlePanic(errorCh, cancel)
-		return srv.Snapshot(errCtx)
-	})
-
-	eg.Go(func() error {
-		defer handlePanic(errorCh, cancel)
-		return srv.Listen(errCtx)
-	})
-
-	go func() {
-		errorCh <- eg.Wait()
-	}()
-
-	return <-errorCh
-}
-
-func initDbConnect(databaseDsn string) (*sql.DB, error) {
-	conn, err := sql.Open("pgx", databaseDsn)
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
-}
-
-func handlePanic(errorCh chan<- error, stop context.CancelFunc) {
-	if r := recover(); r != nil {
-		errorCh <- fmt.Errorf("panic: %v", r)
-		stop()
-	}
+	return srv.Run()
 }

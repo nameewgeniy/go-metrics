@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 )
 
@@ -24,4 +25,7 @@ type Storage interface {
 	AddCounter(MetricsItemCounter) error
 	FindCounterItem(name string) (MetricsItemCounter, error)
 	FindCounterAll() ([]MetricsItemCounter, error)
+
+	Up(ctx context.Context) error
+	Down(ctx context.Context) error
 }
