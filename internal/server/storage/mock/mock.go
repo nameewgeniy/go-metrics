@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"github.com/stretchr/testify/mock"
 	"go-metrics/internal/server/storage"
 )
@@ -44,5 +45,13 @@ func (m *MockStorage) Restore() error {
 }
 
 func (m *MockStorage) Snapshot() error {
+	return nil
+}
+
+func (m *MockStorage) Up(ctx context.Context) error {
+	return nil
+}
+
+func (m *MockStorage) Down(ctx context.Context) error {
 	return nil
 }
