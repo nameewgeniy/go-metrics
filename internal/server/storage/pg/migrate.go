@@ -16,7 +16,7 @@ func (p Pg) migrationUp() error {
 		return err
 	}
 
-	if err := goose.Up(p.c.Db(), p.mDir); err != nil {
+	if err := goose.Up(p.c.DB(), p.mDir); err != nil {
 		return err
 	}
 
@@ -31,7 +31,7 @@ func (p Pg) migrationDown() error {
 		return err
 	}
 
-	if err := goose.Down(p.c.Db(), p.mDir); err != nil {
+	if err := goose.Down(p.c.DB(), p.mDir); err != nil {
 		return err
 	}
 

@@ -24,7 +24,7 @@ func (p Pg) AddBatchCounters(counters []storage.MetricsItemCounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	tr, err := p.c.Db().BeginTx(ctx, nil)
+	tr, err := p.c.DB().BeginTx(ctx, nil)
 
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (p Pg) FindCounterItem(name string) (storage.MetricsItemCounter, error) {
 	baseQuery := "SELECT name, value FROM #table# WHERE name = $1"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	rows := p.c.Db().QueryRowContext(ctx, preparedQuery, name)
+	rows := p.c.DB().QueryRowContext(ctx, preparedQuery, name)
 
 	if err := rows.Scan(&res.Name, &res.Value); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -77,7 +77,7 @@ func (p Pg) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	baseQuery := "SELECT name, value FROM #table#"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	rows, err := p.c.Db().QueryContext(ctx, preparedQuery)
+	rows, err := p.c.DB().QueryContext(ctx, preparedQuery)
 	if err != nil {
 		return res, err
 	}
