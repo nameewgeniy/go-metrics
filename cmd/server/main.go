@@ -41,7 +41,10 @@ func run() error {
 	if f.databaseDsn != "" {
 
 		pgconn, err := sql.Open("pgx", f.databaseDsn)
-		defer pgconn.Close()
+		defer func() {
+			_ = pgconn.Close()
+		}()
+
 		if err != nil {
 			return err
 		}
