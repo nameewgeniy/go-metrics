@@ -4,61 +4,22 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"go-metrics/internal/server/storage"
+	"go-metrics/internal/server/storage/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type MockStorage struct {
-	AddCounterFn      func(i storage.MetricsItemCounter) error
-	AddGaugeFn        func(gauge storage.MetricsItemGauge) error
-	FindGaugeItemFn   func(name string) (storage.MetricsItemGauge, error)
-	FindGaugeAllFn    func() ([]storage.MetricsItemGauge, error)
-	FindCounterItemFn func(name string) (storage.MetricsItemCounter, error)
-	FindCounterAllFn  func() ([]storage.MetricsItemCounter, error)
-	RestoreFn         func() error
-	SnapshotFn        func() error
-}
-
-func (m *MockStorage) AddCounter(i storage.MetricsItemCounter) error {
-	return m.AddCounterFn(i)
-}
-
-func (m *MockStorage) AddGauge(gauge storage.MetricsItemGauge) error {
-	return m.AddGaugeFn(gauge)
-}
-
-func (m *MockStorage) FindGaugeItem(name string) (storage.MetricsItemGauge, error) {
-	return m.FindGaugeItemFn(name)
-}
-
-func (m *MockStorage) FindGaugeAll() ([]storage.MetricsItemGauge, error) {
-	return m.FindGaugeAllFn()
-}
-
-func (m *MockStorage) FindCounterItem(name string) (storage.MetricsItemCounter, error) {
-	return m.FindCounterItemFn(name)
-}
-
-func (m *MockStorage) FindCounterAll() ([]storage.MetricsItemCounter, error) {
-	return m.FindCounterAllFn()
-}
-
-func (m *MockStorage) Restore() error {
-	return m.RestoreFn()
-}
-
-func (m *MockStorage) Snapshot() error {
-	return m.SnapshotFn()
-}
-
 func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
+
+	storageMock := mock.NewMockStorage()
+	storageMock.On("AddCounter", storage.MetricsItemCounter{
+		Name:  "test",
+		Value: 10,
+	}).Return(nil)
+
 	h := MuxHandlers{
-		s: &MockStorage{
-			AddCounterFn: func(i storage.MetricsItemCounter) error {
-				return nil
-			},
-		},
+		s: storageMock,
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
@@ -84,12 +45,15 @@ func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
 }
 
 func TestMuxHandlers_UpdateGaugeMetricsHandle(t *testing.T) {
+
+	storageMock := mock.NewMockStorage()
+	storageMock.On("AddGauge", storage.MetricsItemGauge{
+		Name:  "test",
+		Value: 10.0,
+	}).Return(nil)
+
 	h := MuxHandlers{
-		s: &MockStorage{
-			AddGaugeFn: func(i storage.MetricsItemGauge) error {
-				return nil
-			},
-		},
+		s: storageMock,
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами

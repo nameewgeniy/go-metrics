@@ -10,5 +10,5 @@ func (p Pg) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	return p.c.Db().PingContext(ctx)
+	return p.c.DB().PingContext(ctx)
 }

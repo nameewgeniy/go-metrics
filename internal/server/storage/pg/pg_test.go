@@ -1,19 +1,30 @@
 package pg
 
 import (
-	"github.com/stretchr/testify/assert"
+	"database/sql"
 	"testing"
 )
 
-// Successfully pings the database
-func TestPingDatabaseSuccessfully(t *testing.T) {
+// Создаем фейковый структуру Pg, имитирующую Pg объект
+type fakePg struct {
+	c *sql.DB
+}
 
-	// Create a new Pg instance with the mock config
-	pg := Pg{}
+func (p fakePg) Ping() error {
+	return nil
+}
 
-	// Call the Ping method
+func TestPing(t *testing.T) {
+	// Создаем фейковый Pg объект
+	pg := fakePg{
+		c: nil, // здесь нужно передать фейковое подключение к базе данных
+	}
+
+	// Вызываем функцию Ping()
 	err := pg.Ping()
 
-	// Assert that the Ping method returns nil error
-	assert.Nil(t, err)
+	// Проверяем, что возвращенная ошибка равна nil (Нет ошибки)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
 }

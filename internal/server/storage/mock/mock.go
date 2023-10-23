@@ -10,6 +10,10 @@ type MockStorage struct {
 	mock.Mock
 }
 
+func NewMockStorage() *MockStorage {
+	return &MockStorage{}
+}
+
 func (m *MockStorage) AddGauge(item storage.MetricsItemGauge) error {
 	args := m.Called(item)
 	return args.Error(0)
@@ -41,17 +45,21 @@ func (m *MockStorage) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 }
 
 func (m *MockStorage) Restore() error {
-	return nil
+	args := m.Called()
+	return args.Error(0)
 }
 
 func (m *MockStorage) Snapshot() error {
-	return nil
+	args := m.Called()
+	return args.Error(0)
 }
 
 func (m *MockStorage) Up(ctx context.Context) error {
-	return nil
+	args := m.Called()
+	return args.Error(0)
 }
 
 func (m *MockStorage) Down(ctx context.Context) error {
-	return nil
+	args := m.Called()
+	return args.Error(0)
 }

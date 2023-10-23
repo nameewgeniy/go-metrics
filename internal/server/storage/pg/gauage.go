@@ -17,7 +17,7 @@ func (p Pg) AddGauge(gauge storage.MetricsItemGauge) error {
 	baseQuery := "INSERT INTO #table# (name, value) VALUES ($1, $2)"
 	preparedQuery := strings.NewReplacer("#table#", p.gaugeTableName).Replace(baseQuery)
 
-	_, err := p.c.Db().ExecContext(ctx, preparedQuery, gauge.Name, gauge.Value)
+	_, err := p.c.DB().ExecContext(ctx, preparedQuery, gauge.Name, gauge.Value)
 
 	return err
 }
@@ -31,7 +31,7 @@ func (p Pg) FindGaugeItem(name string) (storage.MetricsItemGauge, error) {
 	baseQuery := "SELECT name, value FROM #table# WHERE name = $1"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	rows := p.c.Db().QueryRowContext(ctx, preparedQuery, name)
+	rows := p.c.DB().QueryRowContext(ctx, preparedQuery, name)
 
 	if err := rows.Scan(&res.Name, &res.Value); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -58,7 +58,7 @@ func (p Pg) FindGaugeAll() ([]storage.MetricsItemGauge, error) {
 	baseQuery := "SELECT name, value FROM #table#"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	rows, err := p.c.Db().QueryContext(ctx, preparedQuery)
+	rows, err := p.c.DB().QueryContext(ctx, preparedQuery)
 	if err != nil {
 		return res, err
 	}

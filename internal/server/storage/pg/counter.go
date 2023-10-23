@@ -23,7 +23,7 @@ func (p Pg) AddCounter(counter storage.MetricsItemCounter) error {
 	baseQuery := "INSERT INTO #table# (name, value) VALUES ($1, $2)"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	_, err = p.c.Db().ExecContext(ctx, preparedQuery, counter.Name, oldValue.Value+counter.Value)
+	_, err = p.c.DB().ExecContext(ctx, preparedQuery, counter.Name, oldValue.Value+counter.Value)
 
 	return err
 }
@@ -37,7 +37,7 @@ func (p Pg) FindCounterItem(name string) (storage.MetricsItemCounter, error) {
 	baseQuery := "SELECT name, value FROM #table# WHERE name = $1"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	rows := p.c.Db().QueryRowContext(ctx, preparedQuery, name)
+	rows := p.c.DB().QueryRowContext(ctx, preparedQuery, name)
 
 	if err := rows.Scan(&res.Name, &res.Value); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -63,7 +63,7 @@ func (p Pg) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	baseQuery := "SELECT name, value FROM #table#"
 	preparedQuery := strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 
-	rows, err := p.c.Db().QueryContext(ctx, preparedQuery)
+	rows, err := p.c.DB().QueryContext(ctx, preparedQuery)
 	if err != nil {
 		return res, err
 	}

@@ -5,7 +5,7 @@ import (
 )
 
 type PgStorageConfig interface {
-	Db() *sql.DB
+	DB() *sql.DB
 	DownMigrations() bool
 }
 
