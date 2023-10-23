@@ -14,7 +14,7 @@ func (p Pg) AddCounter(counter storage.MetricsItemCounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := p.c.Db().ExecContext(ctx, p.upsertCounterSql(), counter.Name, counter.Value)
+	_, err := p.c.DB().ExecContext(ctx, p.upsertCounterSql(), counter.Name, counter.Value)
 
 	return err
 }
