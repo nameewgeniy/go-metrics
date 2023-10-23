@@ -19,10 +19,12 @@ type MetricsItemCounter struct {
 
 type Storage interface {
 	AddGauge(MetricsItemGauge) error
+	AddBatchGauges([]MetricsItemGauge) error
 	FindGaugeItem(name string) (MetricsItemGauge, error)
 	FindGaugeAll() ([]MetricsItemGauge, error)
 
 	AddCounter(MetricsItemCounter) error
+	AddBatchCounters([]MetricsItemCounter) error
 	FindCounterItem(name string) (MetricsItemCounter, error)
 	FindCounterAll() ([]MetricsItemCounter, error)
 

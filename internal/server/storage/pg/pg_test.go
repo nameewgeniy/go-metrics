@@ -1,19 +1,27 @@
 package pg
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-// Successfully pings the database
-func TestPingDatabaseSuccessfully(t *testing.T) {
+func TestUpsertCounterSql(t *testing.T) {
+	p := Pg{
+		counterTableName: "counters",
+	}
+	expectedQuery := "INSERT INTO counters as t (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = t.value + excluded.value"
+	actualQuery := p.upsertCounterSql()
+	if actualQuery != expectedQuery {
+		t.Errorf("Expected query: %s, but got: %s", expectedQuery, actualQuery)
+	}
+}
 
-	// Create a new Pg instance with the mock config
-	pg := Pg{}
-
-	// Call the Ping method
-	err := pg.Ping()
-
-	// Assert that the Ping method returns nil error
-	assert.Nil(t, err)
+func TestReturnsCorrectSQLQuery(t *testing.T) {
+	p := Pg{
+		gaugeTableName: "gauge_table",
+	}
+	expectedQuery := "INSERT INTO gauge_table (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = $2"
+	actualQuery := p.upsertGaugeSql()
+	if actualQuery != expectedQuery {
+		t.Errorf("Expected query: %s, but got: %s", expectedQuery, actualQuery)
+	}
 }

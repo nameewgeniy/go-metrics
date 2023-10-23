@@ -13,6 +13,15 @@ func (m *Memory) AddCounter(counter storage.MetricsItemCounter) error {
 	return nil
 }
 
+func (m *Memory) AddBatchCounters(counters []storage.MetricsItemCounter) error {
+	//if oldValue, ok := m.Counter.Load(counter.Name); ok {
+	//	counter.Value += oldValue.(int64)
+	//}
+	//m.Counter.Store(counter.Name, counter.Value)
+
+	return nil
+}
+
 func (m *Memory) FindCounterItem(name string) (storage.MetricsItemCounter, error) {
 	res := storage.MetricsItemCounter{}
 	if val, ok := m.Counter.Load(name); ok {

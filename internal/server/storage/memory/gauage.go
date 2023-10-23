@@ -10,6 +10,10 @@ func (m *Memory) AddGauge(gauge storage.MetricsItemGauge) error {
 	return nil
 }
 
+func (m *Memory) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
+	return nil
+}
+
 func (m *Memory) FindGaugeItem(name string) (storage.MetricsItemGauge, error) {
 	res := storage.MetricsItemGauge{}
 	if val, ok := m.Gauge.Load(name); ok {

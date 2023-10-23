@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"go-metrics/internal/server/storage"
+	"go-metrics/internal/server/storage/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -44,6 +46,22 @@ func (m *MockStorage) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	return m.FindCounterAllFn()
 }
 
+func (m *MockStorage) AddBatchCounters(counters []storage.MetricsItemCounter) error {
+	return nil
+}
+
+func (m *MockStorage) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
+	return nil
+}
+
+func (m *MockStorage) Up(_ context.Context) error {
+	return nil
+}
+
+func (m *MockStorage) Down(_ context.Context) error {
+	return nil
+}
+
 func (m *MockStorage) Restore() error {
 	return m.RestoreFn()
 }
@@ -53,12 +71,15 @@ func (m *MockStorage) Snapshot() error {
 }
 
 func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
+
+	storageMock := mock.NewMockStorage()
+	storageMock.On("AddCounter", storage.MetricsItemCounter{
+		Name:  "test",
+		Value: 10,
+	}).Return(nil)
+
 	h := MuxHandlers{
-		s: &MockStorage{
-			AddCounterFn: func(i storage.MetricsItemCounter) error {
-				return nil
-			},
-		},
+		s: storageMock,
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
@@ -84,12 +105,15 @@ func TestMuxHandlers_UpdateCounterMetricsHandle(t *testing.T) {
 }
 
 func TestMuxHandlers_UpdateGaugeMetricsHandle(t *testing.T) {
+
+	storageMock := mock.NewMockStorage()
+	storageMock.On("AddGauge", storage.MetricsItemGauge{
+		Name:  "test",
+		Value: 10.0,
+	}).Return(nil)
+
 	h := MuxHandlers{
-		s: &MockStorage{
-			AddGaugeFn: func(i storage.MetricsItemGauge) error {
-				return nil
-			},
-		},
+		s: storageMock,
 	}
 
 	// Создаем тестовый HTTP-запрос с нужными параметрами
