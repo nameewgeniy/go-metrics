@@ -30,34 +30,52 @@ func run() error {
 		return err
 	}
 
-	var strg storage.Storage
-	var snapshot memory.SnapshotStorage
-	var ping handlers.Ping
-
-	memcfg := conf.NewMemoryStorageConf(f.fileStoragePath, f.restore)
-	mstrg := memory.NewMemoryStorage(memcfg)
-	strg, snapshot = mstrg, mstrg
-
+	var conn *sql.DB
 	if f.databaseDsn != "" {
 
-		pgconn, err := sql.Open("pgx", f.databaseDsn)
-		defer func() {
-			_ = pgconn.Close()
-		}()
-
-		if err != nil {
+		if conn, err = sql.Open("pgx", f.databaseDsn); err != nil {
 			return err
 		}
 
-		pgconf := conf.NewPgStorageConf(pgconn, f.downMigrations)
-		pstrg := pg.NewPgStorage(pgconf)
-		strg, ping = pstrg, pstrg
+		defer func() {
+			_ = conn.Close()
+		}()
 	}
 
-	handler := handlers.NewMuxHandlers(strg, ping)
+	mainStorage, snapshot, ping, err := newStorageServices(f, conn)
+	if err != nil {
+		return err
+	}
+
+	handler := handlers.NewMuxHandlers(mainStorage, ping)
 
 	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
-	srv := server.NewServer(cnf, handler, strg, snapshot)
+	srv := server.NewServer(cnf, handler, mainStorage, snapshot)
 
 	return srv.Run()
+}
+
+func newStorageServices(f *flags, conn *sql.DB) (storage.Storage, memory.SnapshotStorage, handlers.Ping, error) {
+	var store storage.Storage
+	var snapshot memory.SnapshotStorage
+	var ping handlers.Ping
+
+	// init memory storage
+	memStorage := memory.NewMemoryStorage(
+		conf.NewMemoryStorageConf(f.fileStoragePath, f.restore),
+	)
+
+	// memStorage реализует интерфейс Storage и SnapshotStorage
+	store, snapshot = memStorage, memStorage
+
+	if conn != nil {
+		pgStorage := pg.NewPgStorage(
+			conf.NewPgStorageConf(conn, f.downMigrations),
+		)
+
+		// pgStorage реализует интерфейс Storage и Ping
+		store, ping = pgStorage, pgStorage
+	}
+
+	return store, snapshot, ping, nil
 }

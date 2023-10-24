@@ -8,7 +8,6 @@ import (
 	"go-metrics/internal/shared"
 	"go-metrics/internal/shared/metrics"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -54,7 +53,6 @@ func (h MuxHandlers) UpdateMetricsJSONHandle(w http.ResponseWriter, r *http.Requ
 	err = h.updateMetrics(*m)
 
 	if err != nil {
-		log.Print(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -92,8 +90,6 @@ func (h MuxHandlers) UpdateBatchMetricsHandle(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	log.Print(string(bytes))
 
 	requestMetrics, err := metrics.NewMetricsFactory().
 		MakeFromBytesForBatchUpdateMetrics(bytes)
