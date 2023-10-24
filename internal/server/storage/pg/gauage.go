@@ -17,7 +17,12 @@ func (p Pg) AddGauge(gauge storage.MetricsItemGauge) error {
 
 	_, err := p.c.DB().ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value)
 
-	return fmt.Errorf("pg: AddGauge: %w", err)
+	if err != nil {
+		return fmt.Errorf("pg: AddGauge: %w", err)
+
+	}
+
+	return nil
 }
 
 func (p Pg) AddBatchGauges(gauges []storage.MetricsItemGauge) error {

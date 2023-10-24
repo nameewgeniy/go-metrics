@@ -54,6 +54,7 @@ func (h MuxHandlers) UpdateMetricsJSONHandle(w http.ResponseWriter, r *http.Requ
 	err = h.updateMetrics(*m)
 
 	if err != nil {
+		log.Print(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

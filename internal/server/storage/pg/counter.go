@@ -17,7 +17,11 @@ func (p Pg) AddCounter(counter storage.MetricsItemCounter) error {
 
 	_, err := p.c.DB().ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value)
 
-	return fmt.Errorf("pg: AddCounter: %w", err)
+	if err != nil {
+		return fmt.Errorf("pg: AddCounter: %w", err)
+	}
+
+	return nil
 }
 
 func (p Pg) AddBatchCounters(counters []storage.MetricsItemCounter) error {
