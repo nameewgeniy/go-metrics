@@ -81,7 +81,9 @@ func (p Pg) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	if err != nil {
 		return res, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	for rows.Next() {
 		var item storage.MetricsItemCounter
