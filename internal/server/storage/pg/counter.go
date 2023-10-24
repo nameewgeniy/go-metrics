@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"go-metrics/internal/server/storage"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ func (p Pg) AddCounter(counter storage.MetricsItemCounter) error {
 
 	_, err := p.c.DB().ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value)
 
-	return err
+	return fmt.Errorf("pg: AddCounter: %w", err)
 }
 
 func (p Pg) AddBatchCounters(counters []storage.MetricsItemCounter) error {
@@ -25,14 +26,17 @@ func (p Pg) AddBatchCounters(counters []storage.MetricsItemCounter) error {
 	defer cancel()
 
 	tr, err := p.c.DB().BeginTx(ctx, nil)
+	defer func() {
+		_ = tr.Rollback()
+	}()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("pg: AddBatchCounters: Begin Transaction: %w", err)
 	}
 
 	for _, counter := range counters {
 		if _, err = tr.ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value); err != nil {
-			return err
+			return fmt.Errorf("pg: AddBatchCounters: %w", err)
 		}
 	}
 
@@ -60,11 +64,11 @@ func (p Pg) FindCounterItem(name string) (storage.MetricsItemCounter, error) {
 			return res, storage.ErrItemNotFound
 		}
 
-		return res, err
+		return res, fmt.Errorf("pg: FindCounterItem: name=%s: %w", name, err)
 	}
 
 	if err := rows.Err(); err != nil {
-		return res, err
+		return res, fmt.Errorf("pg: FindCounterItem: Rows: name=%s: %w", name, err)
 	}
 
 	return res, nil
@@ -81,7 +85,7 @@ func (p Pg) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 
 	rows, err := p.c.DB().QueryContext(ctx, preparedQuery)
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("pg: FindCounterAll: Rows: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -96,7 +100,7 @@ func (p Pg) FindCounterAll() ([]storage.MetricsItemCounter, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return res, err
+		return res, fmt.Errorf("pg: FindCounterAll: Rows: %w", err)
 	}
 
 	return res, nil

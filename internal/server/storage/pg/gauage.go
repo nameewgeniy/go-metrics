@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"go-metrics/internal/server/storage"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ func (p Pg) AddGauge(gauge storage.MetricsItemGauge) error {
 
 	_, err := p.c.DB().ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value)
 
-	return err
+	return fmt.Errorf("pg: AddGauge: %w", err)
 }
 
 func (p Pg) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
@@ -24,14 +25,17 @@ func (p Pg) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
 	defer cancel()
 
 	tr, err := p.c.DB().BeginTx(ctx, nil)
+	defer func() {
+		_ = tr.Rollback()
+	}()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("pg: AddBatchGauges: Begin Transaction: %w", err)
 	}
 
 	for _, gauge := range gauges {
 		if _, err = tr.ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value); err != nil {
-			return err
+			return fmt.Errorf("pg: AddBatchGauges: metric=%s: %w", gauge.Name, err)
 		}
 	}
 
@@ -59,11 +63,11 @@ func (p Pg) FindGaugeItem(name string) (storage.MetricsItemGauge, error) {
 			return res, storage.ErrItemNotFound
 		}
 
-		return res, err
+		return res, fmt.Errorf("pg: FindGaugeItem: name=%s: %w", name, err)
 	}
 
 	if err := rows.Err(); err != nil {
-		return res, err
+		return res, fmt.Errorf("pg: FindGaugeItem: name=%s: %w", name, err)
 	}
 
 	return res, nil
@@ -90,13 +94,13 @@ func (p Pg) FindGaugeAll() ([]storage.MetricsItemGauge, error) {
 	for rows.Next() {
 		var item storage.MetricsItemGauge
 		if err := rows.Scan(&item.Name, &item.Value); err != nil {
-			return res, err
+			return res, fmt.Errorf("pg: FindGaugeAll: %w", err)
 		}
 		res = append(res, item)
 	}
 
 	if err := rows.Err(); err != nil {
-		return res, err
+		return res, fmt.Errorf("pg: FindGaugeAll: %w", err)
 	}
 
 	return res, nil
