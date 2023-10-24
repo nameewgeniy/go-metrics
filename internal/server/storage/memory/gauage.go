@@ -11,6 +11,13 @@ func (m *Memory) AddGauge(gauge storage.MetricsItemGauge) error {
 }
 
 func (m *Memory) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
+
+	for _, v := range gauges {
+		if err := m.AddGauge(v); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
