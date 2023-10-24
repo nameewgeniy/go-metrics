@@ -1,9 +1,11 @@
 package service
 
 import (
+	"bytes"
+	"encoding/json"
+	"go-metrics/internal/shared/metrics"
 	"net/http"
 	"net/url"
-	"path"
 )
 
 type SenderConfig interface {
@@ -20,16 +22,21 @@ func NewMetricSender(cf SenderConfig) *MSender {
 	}
 }
 
-func (s MSender) SendMemStatsMetric(metricType, metricName, metricValue string) error {
+func (s MSender) SendMemStatsMetric(metrics []metrics.Metrics) error {
 
 	u := &url.URL{
 		Scheme: "http",
 		Host:   s.cf.PushAddr(),
+		Path:   "updates/",
 	}
 
-	u.Path = path.Join("update", metricType, metricName, metricValue)
+	jsonPayload, err := json.Marshal(metrics)
 
-	resp, err := http.Post(u.String(), "text/plain; charset=utf-8", nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(u.String(), "application/json", bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return err
 	}

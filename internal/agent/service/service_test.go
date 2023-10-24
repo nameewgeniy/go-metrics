@@ -34,9 +34,9 @@ func TestPush(t *testing.T) {
 
 	for _, v := range expectedMetrics {
 		for _, i := range mockSender.sentMetrics {
-			if v.name == i.name {
-				assert.Equal(t, v.value, i.value, "Expected sent metrics value to match")
-				assert.Equal(t, v.mType, i.mType, "Expected sent metrics type to match")
+			if v.Name == i.name {
+				assert.Equal(t, v.Value, i.value, "Expected sent metrics value to match")
+				assert.Equal(t, v.MType, i.mType, "Expected sent metrics type to match")
 			}
 		}
 	}
