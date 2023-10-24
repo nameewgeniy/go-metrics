@@ -57,5 +57,7 @@ func (s MSender) SendMemStatsMetric(metrics []metrics.Metrics) error {
 		return err
 	}
 
+	resp, err = retryClient.Do(req)
+
 	return resp.Body.Close()
 }
