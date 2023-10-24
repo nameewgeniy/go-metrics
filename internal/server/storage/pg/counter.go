@@ -31,7 +31,9 @@ func (p Pg) AddBatchCounters(counters []storage.MetricsItemCounter) error {
 	}
 
 	for _, counter := range counters {
-		_, err = tr.ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value)
+		if _, err = tr.ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value); err != nil {
+			return err
+		}
 	}
 
 	return tr.Commit()

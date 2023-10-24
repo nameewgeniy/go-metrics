@@ -30,7 +30,9 @@ func (p Pg) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
 	}
 
 	for _, gauge := range gauges {
-		_, err = tr.ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value)
+		if _, err = tr.ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value); err != nil {
+			return err
+		}
 	}
 
 	return tr.Commit()
