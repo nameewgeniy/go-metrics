@@ -14,7 +14,7 @@ func (p Pg) AddGauge(gauge storage.MetricsItemGauge) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := p.c.DB().ExecContext(ctx, p.upsertGaugeSql(), gauge.Name, gauge.Value)
+	_, err := p.c.DB().ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value)
 
 	return err
 }
@@ -30,13 +30,13 @@ func (p Pg) AddBatchGauges(gauges []storage.MetricsItemGauge) error {
 	}
 
 	for _, gauge := range gauges {
-		_, err = tr.ExecContext(ctx, p.upsertGaugeSql(), gauge.Name, gauge.Value)
+		_, err = tr.ExecContext(ctx, p.upsertGaugeSQL(), gauge.Name, gauge.Value)
 	}
 
 	return tr.Commit()
 }
 
-func (p Pg) upsertGaugeSql() string {
+func (p Pg) upsertGaugeSQL() string {
 	baseQuery := "INSERT INTO #table# (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = $2"
 	return strings.NewReplacer("#table#", p.gaugeTableName).Replace(baseQuery)
 }

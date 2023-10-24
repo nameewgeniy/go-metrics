@@ -14,7 +14,7 @@ func (p Pg) AddCounter(counter storage.MetricsItemCounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := p.c.DB().ExecContext(ctx, p.upsertCounterSql(), counter.Name, counter.Value)
+	_, err := p.c.DB().ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value)
 
 	return err
 }
@@ -31,13 +31,13 @@ func (p Pg) AddBatchCounters(counters []storage.MetricsItemCounter) error {
 	}
 
 	for _, counter := range counters {
-		_, err = tr.ExecContext(ctx, p.upsertCounterSql(), counter.Name, counter.Value)
+		_, err = tr.ExecContext(ctx, p.upsertCounterSQL(), counter.Name, counter.Value)
 	}
 
 	return tr.Commit()
 }
 
-func (p Pg) upsertCounterSql() string {
+func (p Pg) upsertCounterSQL() string {
 	baseQuery := "INSERT INTO #table# as t (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = t.value + excluded.value"
 	return strings.NewReplacer("#table#", p.counterTableName).Replace(baseQuery)
 }
