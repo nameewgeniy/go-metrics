@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 )
 
@@ -18,10 +19,15 @@ type MetricsItemCounter struct {
 
 type Storage interface {
 	AddGauge(MetricsItemGauge) error
+	AddBatchGauges([]MetricsItemGauge) error
 	FindGaugeItem(name string) (MetricsItemGauge, error)
 	FindGaugeAll() ([]MetricsItemGauge, error)
 
 	AddCounter(MetricsItemCounter) error
+	AddBatchCounters([]MetricsItemCounter) error
 	FindCounterItem(name string) (MetricsItemCounter, error)
 	FindCounterAll() ([]MetricsItemCounter, error)
+
+	Up(ctx context.Context) error
+	Down(ctx context.Context) error
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestMemory_Add(t *testing.T) {
-	m := NewMemory(conf.NewStorageConf("tmp/test.json"))
+	m := NewMemoryStorage(conf.NewMemoryStorageConf("tmp/test.json", true))
 
 	// Тестирование добавления счетчика
 	counter := storage.MetricsItemCounter{

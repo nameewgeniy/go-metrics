@@ -2,11 +2,16 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"go-metrics/internal/server/handlers/middleware"
 	"go-metrics/internal/server/storage"
 	"go-metrics/internal/server/storage/memory"
+	"golang.org/x/sync/errgroup"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -23,6 +28,10 @@ type Handlers interface {
 
 	GetMetricsJSONHandle(http.ResponseWriter, *http.Request)
 	UpdateMetricsJSONHandle(http.ResponseWriter, *http.Request)
+
+	PingHandle(http.ResponseWriter, *http.Request)
+
+	UpdateBatchMetricsHandle(http.ResponseWriter, *http.Request)
 }
 
 type Server struct {
@@ -41,7 +50,48 @@ func NewServer(c ServerConfig, h Handlers, s storage.Storage, sn memory.Snapshot
 	}
 }
 
-func (s Server) Listen(ctx context.Context) error {
+func (s Server) Run() error {
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	errorCh := make(chan error)
+	defer close(errorCh)
+
+	// Storage up
+	if err := s.s.Up(ctx); err != nil {
+		return err
+	}
+
+	// Storage down
+	defer func() {
+		_ = s.s.Down(ctx)
+	}()
+
+	eg, errCtx := errgroup.WithContext(ctx)
+
+	// Interval snapshot run
+	if s.sn != nil {
+		eg.Go(func() error {
+			defer handlePanic(errorCh, cancel)
+			return s.intervalSnapshot(errCtx)
+		})
+	}
+
+	// Server listen
+	eg.Go(func() error {
+		defer handlePanic(errorCh, cancel)
+		return s.listen(errCtx)
+	})
+
+	go func() {
+		errorCh <- eg.Wait()
+	}()
+
+	return <-errorCh
+}
+
+func (s Server) listen(ctx context.Context) error {
 
 	r := mux.NewRouter()
 	r.Handle("/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.ViewMetricsHandle))).Methods(http.MethodGet)
@@ -51,6 +101,10 @@ func (s Server) Listen(ctx context.Context) error {
 
 	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsHandle))).Methods(http.MethodPost, http.MethodOptions)
 	r.Handle("/value/{type}/{name}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsHandle))).Methods(http.MethodGet)
+
+	r.Handle("/ping", middleware.RequestLogger(middleware.CompressMiddleware(s.h.PingHandle))).Methods(http.MethodGet)
+
+	r.Handle("/updates/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateBatchMetricsHandle))).Methods(http.MethodPost)
 
 	srv := &http.Server{
 		Handler:      r,
@@ -71,7 +125,7 @@ func (s Server) Listen(ctx context.Context) error {
 	return nil
 }
 
-func (s Server) Snapshot(ctx context.Context) error {
+func (s Server) intervalSnapshot(ctx context.Context) error {
 
 	// Запускаем интервальный сброс данных в файл
 	snapshotTicker := time.NewTicker(s.cnf.StoreInterval())
@@ -80,7 +134,7 @@ func (s Server) Snapshot(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return s.sn.Snapshot()
+			return nil
 		case <-snapshotTicker.C:
 			if err := s.sn.Snapshot(); err != nil {
 				return err
@@ -89,11 +143,9 @@ func (s Server) Snapshot(ctx context.Context) error {
 	}
 }
 
-// Restore Выгружаем данные в storage
-func (s Server) Restore() error {
-	if s.cnf.Restore() {
-		return s.sn.Restore()
+func handlePanic(errorCh chan<- error, stop context.CancelFunc) {
+	if r := recover(); r != nil {
+		errorCh <- fmt.Errorf("panic: %v", r)
+		stop()
 	}
-
-	return nil
 }

@@ -1,18 +1,16 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"database/sql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go-metrics/internal/server"
 	"go-metrics/internal/server/conf"
 	"go-metrics/internal/server/handlers"
+	"go-metrics/internal/server/storage"
 	"go-metrics/internal/server/storage/memory"
+	"go-metrics/internal/server/storage/pg"
 	"go-metrics/internal/shared/logger"
-	"golang.org/x/sync/errgroup"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -32,47 +30,52 @@ func run() error {
 		return err
 	}
 
-	mcfg := conf.NewStorageConf(f.fileStoragePath)
-	store := memory.NewMemory(mcfg)
+	var conn *sql.DB
+	if f.databaseDsn != "" {
 
-	handler := handlers.NewMuxHandlers(store)
+		if conn, err = sql.Open("pgx", f.databaseDsn); err != nil {
+			return err
+		}
 
-	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
-	srv := server.NewServer(cnf, handler, store, store)
+		defer func() {
+			_ = conn.Close()
+		}()
+	}
 
-	err = srv.Restore()
+	mainStorage, snapshot, ping, err := newStorageServices(f, conn)
 	if err != nil {
 		return err
 	}
 
-	errorCh := make(chan error)
-	defer close(errorCh)
+	handler := handlers.NewMuxHandlers(mainStorage, ping)
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	cnf := conf.NewServerConf(f.addr, f.storeInterval, f.restore)
+	srv := server.NewServer(cnf, handler, mainStorage, snapshot)
 
-	eg, errCtx := errgroup.WithContext(ctx)
-
-	eg.Go(func() error {
-		defer handlePanic(errorCh, cancel)
-		return srv.Snapshot(errCtx)
-	})
-
-	eg.Go(func() error {
-		defer handlePanic(errorCh, cancel)
-		return srv.Listen(errCtx)
-	})
-
-	go func() {
-		errorCh <- eg.Wait()
-	}()
-
-	return <-errorCh
+	return srv.Run()
 }
 
-func handlePanic(errorCh chan<- error, stop context.CancelFunc) {
-	if r := recover(); r != nil {
-		errorCh <- fmt.Errorf("panic: %v", r)
-		stop()
+func newStorageServices(f *flags, conn *sql.DB) (storage.Storage, memory.SnapshotStorage, handlers.Ping, error) {
+	var store storage.Storage
+	var snapshot memory.SnapshotStorage
+	var ping handlers.Ping
+
+	// init memory storage
+	memStorage := memory.NewMemoryStorage(
+		conf.NewMemoryStorageConf(f.fileStoragePath, f.restore),
+	)
+
+	// memStorage реализует интерфейс Storage и SnapshotStorage
+	store, snapshot = memStorage, memStorage
+
+	if conn != nil {
+		pgStorage := pg.NewPgStorage(
+			conf.NewPgStorageConf(conn, f.downMigrations),
+		)
+
+		// pgStorage реализует интерфейс Storage и Ping
+		store, ping = pgStorage, pgStorage
 	}
+
+	return store, snapshot, ping, nil
 }

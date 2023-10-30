@@ -26,7 +26,7 @@ func run() error {
 	}
 
 	scf := conf.NewSenderConfig(f.pushAddress)
-	snd := service.NewMetricJSONSender(scf)
+	snd := service.NewMetricSender(scf)
 	rm := service.NewRuntimeMetrics(snd)
 
 	cf := conf.NewAgentConf(f.pollIntervalSec, f.reportIntervalSec)

@@ -16,6 +16,8 @@ type flags struct {
 	fileStoragePath string
 	storeInterval   int
 	restore         bool
+	databaseDsn     string
+	downMigrations  bool
 }
 
 func (f *flags) validate() error {
@@ -40,8 +42,10 @@ func parseFlags() (*flags, error) {
 	flag.StringVar(&f.addr, "a", "localhost:8080", "address")
 	flag.StringVar(&f.logLevel, "l", "info", "log level")
 	flag.StringVar(&f.fileStoragePath, "f", "/tmp/metrics-db.json", "file storage path")
+	flag.StringVar(&f.databaseDsn, "d", "", "database dsn")
 	flag.IntVar(&f.storeInterval, "i", 300, "store interval")
 	flag.BoolVar(&f.restore, "r", true, "restore")
+	flag.BoolVar(&f.downMigrations, "dm", true, "down migrations after stop")
 	flag.Parse()
 
 	envAddr := os.Getenv("ADDRESS")
@@ -57,6 +61,11 @@ func parseFlags() (*flags, error) {
 	envFileStoragePah := os.Getenv("FILE_STORAGE_PATH")
 	if envFileStoragePah != "" {
 		f.fileStoragePath = envFileStoragePah
+	}
+
+	envDatabaseDsn := os.Getenv("DATABASE_DSN")
+	if envDatabaseDsn != "" {
+		f.databaseDsn = envDatabaseDsn
 	}
 
 	envStoreInterval := os.Getenv("STORE_INTERVAL")

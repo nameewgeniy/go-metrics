@@ -17,6 +17,19 @@ func (ms *GaugeMetricsItemStrategy) AddMetric(m metrics.Metrics, s storage.Stora
 	return s.AddGauge(it)
 }
 
+func (ms *GaugeMetricsItemStrategy) AddBatchMetric(m []metrics.Metrics, s storage.Storage) error {
+
+	var metricsItems []storage.MetricsItemGauge
+	for i := range m {
+		metricsItems = append(metricsItems, storage.MetricsItemGauge{
+			Name:  m[i].ID,
+			Value: *m[i].Value,
+		})
+	}
+
+	return s.AddBatchGauges(metricsItems)
+}
+
 func (ms *GaugeMetricsItemStrategy) GetMetric(m *metrics.Metrics, s storage.Storage) error {
 	item, err := s.FindGaugeItem(m.ID)
 

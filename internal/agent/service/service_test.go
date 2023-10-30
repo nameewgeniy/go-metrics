@@ -2,22 +2,17 @@ package service
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go-metrics/internal/shared/metrics"
 	"testing"
 	"time"
 )
 
-type MetricItem struct {
-	mType string
-	name  string
-	value string
-}
-
 type MockMetricsSender struct {
-	sentMetrics []MetricItem
+	sentMetrics []metrics.Metrics
 }
 
-func (m *MockMetricsSender) SendMemStatsMetric(metricType, name, value string) error {
-	m.sentMetrics = append(m.sentMetrics, MetricItem{metricType, name, value})
+func (m *MockMetricsSender) SendMemStatsMetric(mt []metrics.Metrics) error {
+	m.sentMetrics = mt
 	return nil
 }
 
@@ -34,9 +29,9 @@ func TestPush(t *testing.T) {
 
 	for _, v := range expectedMetrics {
 		for _, i := range mockSender.sentMetrics {
-			if v.name == i.name {
-				assert.Equal(t, v.value, i.value, "Expected sent metrics value to match")
-				assert.Equal(t, v.mType, i.mType, "Expected sent metrics type to match")
+			if v.ID == i.ID {
+				assert.Equal(t, v.Value, i.Value, "Expected sent metrics value to match")
+				assert.Equal(t, v.MType, i.MType, "Expected sent metrics type to match")
 			}
 		}
 	}

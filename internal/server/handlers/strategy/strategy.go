@@ -7,5 +7,6 @@ import (
 
 type MetricsItemStrategy interface {
 	AddMetric(m metrics.Metrics, s storage.Storage) error
+	AddBatchMetric(m []metrics.Metrics, s storage.Storage) error
 	GetMetric(m *metrics.Metrics, s storage.Storage) error
 }

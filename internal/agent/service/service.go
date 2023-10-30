@@ -2,6 +2,7 @@ package service
 
 import (
 	"go-metrics/internal/shared"
+	"go-metrics/internal/shared/metrics"
 	"log"
 	"math/rand"
 	"runtime"
@@ -10,14 +11,7 @@ import (
 )
 
 type MetricsSender interface {
-	SendMemStatsMetric(metricType, metricName, metricValue string) error
-}
-
-// Метрки, которые мы будем отправлять из пакета runtime
-type metricsTracked struct {
-	mType string
-	name  string
-	value string
+	SendMemStatsMetric([]metrics.Metrics) error
 }
 
 type extMemStats struct {
@@ -46,164 +40,241 @@ func (m RuntimeMetrics) Push() {
 	m.memStats.mutex.RLock()
 	defer m.memStats.mutex.RUnlock()
 
-	for _, v := range m.MetricsTracked() {
-		item := v
-
-		go func() {
-			err := m.s.SendMemStatsMetric(item.mType, item.name, item.value)
-			if err != nil {
-				log.Print(err)
-			}
-		}()
-	}
+	go func() {
+		err := m.s.SendMemStatsMetric(m.MetricsTracked())
+		if err != nil {
+			log.Print(err)
+		}
+	}()
 }
 
-func (m RuntimeMetrics) MetricsTracked() []metricsTracked {
-	return []metricsTracked{
+func (m RuntimeMetrics) MetricsTracked() []metrics.Metrics {
+	return []metrics.Metrics{
 		{
-			mType: shared.GaugeType,
-			name:  "Alloc",
-			value: MetricsValueToString(m.memStats.m.Alloc),
+			MType: shared.GaugeType,
+			ID:    "Alloc",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.Alloc)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "NextGC",
-			value: MetricsValueToString(m.memStats.m.NextGC),
+			MType: shared.GaugeType,
+			ID:    "NextGC",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.NextGC)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "BuckHashSys",
-			value: MetricsValueToString(m.memStats.m.BuckHashSys),
+			MType: shared.GaugeType,
+			ID:    "BuckHashSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.BuckHashSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "Frees",
-			value: MetricsValueToString(m.memStats.m.Frees),
+			MType: shared.GaugeType,
+			ID:    "Frees",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.Frees)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "GCCPUFraction",
-			value: MetricsValueToString(m.memStats.m.GCCPUFraction),
+			MType: shared.GaugeType,
+			ID:    "GCCPUFraction",
+			Value: &m.memStats.m.GCCPUFraction,
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "Mallocs",
-			value: MetricsValueToString(m.memStats.m.Mallocs),
+			MType: shared.GaugeType,
+			ID:    "Mallocs",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.Mallocs)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "MSpanSys",
-			value: MetricsValueToString(m.memStats.m.MSpanSys),
+			MType: shared.GaugeType,
+			ID:    "MSpanSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.MSpanSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "MSpanInuse",
-			value: MetricsValueToString(m.memStats.m.MSpanInuse),
+			MType: shared.GaugeType,
+			ID:    "MSpanInuse",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.MSpanInuse)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "MCacheSys",
-			value: MetricsValueToString(m.memStats.m.MCacheSys),
+			MType: shared.GaugeType,
+			ID:    "MCacheSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.MCacheSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "MCacheInuse",
-			value: MetricsValueToString(m.memStats.m.MCacheInuse),
+			MType: shared.GaugeType,
+			ID:    "MCacheInuse",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.MCacheInuse)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "Lookups",
-			value: MetricsValueToString(m.memStats.m.Lookups),
+			MType: shared.GaugeType,
+			ID:    "Lookups",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.Lookups)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "LastGC",
-			value: MetricsValueToString(m.memStats.m.LastGC),
+			MType: shared.GaugeType,
+			ID:    "LastGC",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.LastGC)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "HeapSys",
-			value: MetricsValueToString(m.memStats.m.HeapSys),
+			MType: shared.GaugeType,
+			ID:    "HeapSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.HeapSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "HeapReleased",
-			value: MetricsValueToString(m.memStats.m.HeapReleased),
+			MType: shared.GaugeType,
+			ID:    "HeapReleased",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.HeapReleased)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "HeapObjects",
-			value: MetricsValueToString(m.memStats.m.HeapObjects),
+			MType: shared.GaugeType,
+			ID:    "HeapObjects",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.HeapObjects)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "HeapInuse",
-			value: MetricsValueToString(m.memStats.m.HeapInuse),
+			MType: shared.GaugeType,
+			ID:    "HeapInuse",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.HeapInuse)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "HeapIdle",
-			value: MetricsValueToString(m.memStats.m.HeapIdle),
+			MType: shared.GaugeType,
+			ID:    "HeapIdle",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.HeapIdle)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "HeapAlloc",
-			value: MetricsValueToString(m.memStats.m.HeapAlloc),
+			MType: shared.GaugeType,
+			ID:    "HeapAlloc",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.HeapAlloc)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "GCSys",
-			value: MetricsValueToString(m.memStats.m.GCSys),
+			MType: shared.GaugeType,
+			ID:    "GCSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.GCSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "NumForcedGC",
-			value: MetricsValueToString(m.memStats.m.NumForcedGC),
+			MType: shared.GaugeType,
+			ID:    "NumForcedGC",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.NumForcedGC)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "NumGC",
-			value: MetricsValueToString(m.memStats.m.NumGC),
+			MType: shared.GaugeType,
+			ID:    "NumGC",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.NumGC)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "OtherSys",
-			value: MetricsValueToString(m.memStats.m.OtherSys),
+			MType: shared.GaugeType,
+			ID:    "OtherSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.OtherSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "PauseTotalNs",
-			value: MetricsValueToString(m.memStats.m.PauseTotalNs),
+			MType: shared.GaugeType,
+			ID:    "PauseTotalNs",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.PauseTotalNs)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "StackInuse",
-			value: MetricsValueToString(m.memStats.m.StackInuse),
+			MType: shared.GaugeType,
+			ID:    "StackInuse",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.StackInuse)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "StackSys",
-			value: MetricsValueToString(m.memStats.m.StackSys),
+			MType: shared.GaugeType,
+			ID:    "StackSys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.StackSys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "Sys",
-			value: MetricsValueToString(m.memStats.m.Sys),
+			MType: shared.GaugeType,
+			ID:    "Sys",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.Sys)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "TotalAlloc",
-			value: MetricsValueToString(m.memStats.m.TotalAlloc),
+			MType: shared.GaugeType,
+			ID:    "TotalAlloc",
+			Value: func() *float64 {
+				v := float64(m.memStats.m.TotalAlloc)
+				return &v
+			}(),
 		},
 		{
-			mType: shared.GaugeType,
-			name:  "RandomValue",
-			value: MetricsValueToString(m.memStats.RandomValue),
+			MType: shared.GaugeType,
+			ID:    "RandomValue",
+			Value: &m.memStats.RandomValue,
 		},
 		{
-			mType: shared.CounterType,
-			name:  "PollCount",
-			value: MetricsValueToString(m.memStats.PollCount),
+			MType: shared.CounterType,
+			ID:    "PollCount",
+			Delta: func() *int64 {
+				v := MetricsValueUintToInt(m.memStats.PollCount)
+				return &v
+			}(),
 		},
 	}
 }

@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"encoding/json"
 	"errors"
 	"go-metrics/internal/shared"
 	"strconv"
@@ -76,6 +77,27 @@ func (f *MetricsFactory) MakeFromBytesForUpdateMetrics(bytes []byte) (*Metrics, 
 	}
 
 	return &m, nil
+}
+
+func (f *MetricsFactory) MakeFromBytesForBatchUpdateMetrics(bytes []byte) ([]Metrics, error) {
+
+	var m []Metrics
+
+	if err := json.Unmarshal(bytes, &m); err != nil {
+		return nil, err
+	}
+
+	for i := range m {
+		if m[i].ID == "" || m[i].MType == "" || (nil == m[i].Value && nil == m[i].Delta) {
+			return nil, ErrRequiredFields
+		}
+
+		if nil != m[i].Value && nil != m[i].Delta {
+			return nil, ErrMutuallyExclusiveValues
+		}
+	}
+
+	return m, nil
 }
 
 func (f *MetricsFactory) MakeFromBytesForGetMetrics(bytes []byte) (*Metrics, error) {
