@@ -1,10 +1,14 @@
 package metrics
 
 import (
+	"errors"
 	"fmt"
 	"go-metrics/internal/shared"
 	"strconv"
 )
+
+var ErrRequiredFields = errors.New("one or more required fields are empty")
+var ErrMutuallyExclusiveValues = errors.New("mutually exclusive values are passed")
 
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
@@ -22,4 +26,25 @@ func (m Metrics) ValueByType() (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported metrics type: %s", m.MType)
 	}
+}
+
+func (m Metrics) ValidateState() error {
+
+	if m.ID == "" || m.MType == "" {
+		return ErrRequiredFields
+	}
+
+	if m.MType == shared.GaugeType && nil == m.Value {
+		return fmt.Errorf("Validate: field value is empty:  %w", ErrRequiredFields)
+	}
+
+	if m.MType == shared.CounterType && nil == m.Delta {
+		return fmt.Errorf("Validate: field delta is empty:  %w", ErrRequiredFields)
+	}
+
+	if nil != m.Value && nil != m.Delta {
+		return ErrMutuallyExclusiveValues
+	}
+
+	return nil
 }

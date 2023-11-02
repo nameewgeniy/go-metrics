@@ -6,6 +6,7 @@ import (
 	"go-metrics/internal/agent"
 	"go-metrics/internal/agent/conf"
 	"go-metrics/internal/agent/service"
+	"go-metrics/internal/shared/signature"
 	"log"
 	"os"
 	"os/signal"
@@ -22,6 +23,10 @@ func run() error {
 
 	f, err := parseFlags()
 	if err != nil {
+		return err
+	}
+
+	if err = signature.Singleton(f.hashKey); err != nil {
 		return err
 	}
 

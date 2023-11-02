@@ -10,6 +10,7 @@ import (
 	"go-metrics/internal/server/storage/memory"
 	"go-metrics/internal/server/storage/pg"
 	"go-metrics/internal/shared/logger"
+	"go-metrics/internal/shared/signature"
 	"log"
 )
 
@@ -26,7 +27,11 @@ func run() error {
 		return err
 	}
 
-	if err = logger.Initialize(f.logLevel); err != nil {
+	if err = logger.Singleton(f.logLevel); err != nil {
+		return err
+	}
+
+	if err = signature.Singleton(f.hashKey); err != nil {
 		return err
 	}
 

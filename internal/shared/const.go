@@ -1,6 +1,7 @@
 package shared
 
 const (
-	CounterType = "counter"
-	GaugeType   = "gauge"
+	CounterType    = "counter"
+	GaugeType      = "gauge"
+	HashHeaderName = "HashSHA256"
 )

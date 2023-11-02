@@ -2,13 +2,9 @@ package metrics
 
 import (
 	"encoding/json"
-	"errors"
 	"go-metrics/internal/shared"
 	"strconv"
 )
-
-var ErrRequiredFields = errors.New("one or more required fields are empty")
-var ErrMutuallyExclusiveValues = errors.New("mutually exclusive values are passed")
 
 type MetricsFactory struct{}
 
@@ -17,10 +13,6 @@ func NewMetricsFactory() *MetricsFactory {
 }
 
 func (f *MetricsFactory) MakeFromMapForUpdateMetrics(vars map[string]string) (*Metrics, error) {
-
-	if vars["name"] == "" || vars["type"] == "" || vars["value"] == "" {
-		return nil, ErrRequiredFields
-	}
 
 	m := Metrics{
 		ID:    vars["name"],
@@ -41,6 +33,10 @@ func (f *MetricsFactory) MakeFromMapForUpdateMetrics(vars map[string]string) (*M
 			return nil, err
 		}
 		m.Value = &numValue
+	}
+
+	if err := m.ValidateState(); err != nil {
+		return nil, err
 	}
 
 	return &m, nil
@@ -68,12 +64,8 @@ func (f *MetricsFactory) MakeFromBytesForUpdateMetrics(bytes []byte) (*Metrics, 
 		return nil, err
 	}
 
-	if m.ID == "" || m.MType == "" || (nil == m.Value && nil == m.Delta) {
-		return nil, ErrRequiredFields
-	}
-
-	if nil != m.Value && nil != m.Delta {
-		return nil, ErrMutuallyExclusiveValues
+	if err := m.ValidateState(); err != nil {
+		return nil, err
 	}
 
 	return &m, nil

@@ -10,6 +10,7 @@ import (
 
 type flags struct {
 	pushAddress       string
+	hashKey           string
 	pollIntervalSec   int
 	reportIntervalSec int
 }
@@ -36,12 +37,18 @@ func parseFlags() (*flags, error) {
 	flag.StringVar(&f.pushAddress, "a", "localhost:8080", "push address")
 	flag.IntVar(&f.pollIntervalSec, "p", 2, "poll interval in seconds")
 	flag.IntVar(&f.reportIntervalSec, "r", 10, "report interval in seconds")
+	flag.StringVar(&f.hashKey, "k", "", "hash key")
 
 	flag.Parse()
 
 	pAddr := os.Getenv("ADDRESS")
 	if pAddr != "" {
 		f.pushAddress = pAddr
+	}
+
+	k := os.Getenv("KEY")
+	if k != "" {
+		f.hashKey = k
 	}
 
 	pi := os.Getenv("POLL_INTERVAL")

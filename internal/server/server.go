@@ -96,7 +96,7 @@ func (s Server) listen(ctx context.Context) error {
 	r := mux.NewRouter()
 	r.Handle("/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.ViewMetricsHandle))).Methods(http.MethodGet)
 
-	r.Handle("/update/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsJSONHandle))).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/update/", middleware.RequestLogger(middleware.CompressMiddleware(middleware.CheckSignature(s.h.UpdateMetricsJSONHandle)))).Methods(http.MethodPost, http.MethodOptions)
 	r.Handle("/value/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsJSONHandle))).Methods(http.MethodPost, http.MethodOptions)
 
 	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsHandle))).Methods(http.MethodPost, http.MethodOptions)
@@ -104,7 +104,7 @@ func (s Server) listen(ctx context.Context) error {
 
 	r.Handle("/ping", middleware.RequestLogger(middleware.CompressMiddleware(s.h.PingHandle))).Methods(http.MethodGet)
 
-	r.Handle("/updates/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateBatchMetricsHandle))).Methods(http.MethodPost)
+	r.Handle("/updates/", middleware.RequestLogger(middleware.CompressMiddleware(middleware.CheckSignature(s.h.UpdateBatchMetricsHandle)))).Methods(http.MethodPost)
 
 	srv := &http.Server{
 		Handler:      r,
