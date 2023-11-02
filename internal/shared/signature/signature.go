@@ -17,17 +17,10 @@ type ChekerSignature struct {
 	key string
 }
 
-func Singleton(key string) error {
-
-	if key == "" {
-		return fmt.Errorf("ChekerSignature: Singleton: key cannot be empty")
-	}
-
+func Singleton(key string) {
 	Sign = &ChekerSignature{
 		key: key,
 	}
-
-	return nil
 }
 
 func (s ChekerSignature) Hash(data []byte) (string, error) {

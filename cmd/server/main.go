@@ -31,9 +31,7 @@ func run() error {
 		return err
 	}
 
-	if err = signature.Singleton(f.hashKey); err != nil {
-		return err
-	}
+	signature.Singleton(f.hashKey)
 
 	var conn *sql.DB
 	if f.databaseDsn != "" {

@@ -26,9 +26,7 @@ func run() error {
 		return err
 	}
 
-	if err = signature.Singleton(f.hashKey); err != nil {
-		return err
-	}
+	signature.Singleton(f.hashKey)
 
 	scf := conf.NewSenderConfig(f.pushAddress)
 	snd := service.NewMetricSender(scf)
