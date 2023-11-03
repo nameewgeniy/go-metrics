@@ -44,6 +44,9 @@ test.i.all: build.all
 		-binary-path=cmd/server/server \
 		-key="test"
 
+test.race: build.all
+	@go test -v -race ./...
+
 db.up:
 	@docker-compose -f build/docker-compose.yaml up -d
 

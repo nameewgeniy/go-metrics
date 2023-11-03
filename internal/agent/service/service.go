@@ -2,8 +2,8 @@ package service
 
 import (
 	"go-metrics/internal/shared"
+	"go-metrics/internal/shared/logger"
 	"go-metrics/internal/shared/metrics"
-	"log"
 	"math/rand"
 	"runtime"
 	"sync"
@@ -40,12 +40,9 @@ func (m RuntimeMetrics) Push() {
 	m.memStats.mutex.RLock()
 	defer m.memStats.mutex.RUnlock()
 
-	go func() {
-		err := m.s.SendMemStatsMetric(m.MetricsTracked())
-		if err != nil {
-			log.Print(err)
-		}
-	}()
+	if err := m.s.SendMemStatsMetric(m.MetricsTracked()); err != nil {
+		logger.Log.Error(err.Error())
+	}
 }
 
 func (m RuntimeMetrics) MetricsTracked() []metrics.Metrics {

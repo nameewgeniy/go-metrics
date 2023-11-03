@@ -13,6 +13,7 @@ type flags struct {
 	hashKey           string
 	pollIntervalSec   int
 	reportIntervalSec int
+	rateLimit         int
 }
 
 func (f *flags) validate() error {
@@ -37,6 +38,7 @@ func parseFlags() (*flags, error) {
 	flag.StringVar(&f.pushAddress, "a", "localhost:8080", "push address")
 	flag.IntVar(&f.pollIntervalSec, "p", 2, "poll interval in seconds")
 	flag.IntVar(&f.reportIntervalSec, "r", 10, "report interval in seconds")
+	flag.IntVar(&f.rateLimit, "l", 1, "rate limit")
 	flag.StringVar(&f.hashKey, "k", "", "hash key")
 
 	flag.Parse()
@@ -49,6 +51,15 @@ func parseFlags() (*flags, error) {
 	k := os.Getenv("KEY")
 	if k != "" {
 		f.hashKey = k
+	}
+
+	rl := os.Getenv("RATE_LIMIT")
+	if rl != "" {
+		v, err := strconv.Atoi(rl)
+		if err != nil {
+			return nil, fmt.Errorf("RATE_LIMIT is not valid: %s", err)
+		}
+		f.rateLimit = v
 	}
 
 	pi := os.Getenv("POLL_INTERVAL")
