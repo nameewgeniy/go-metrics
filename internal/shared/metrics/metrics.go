@@ -35,11 +35,11 @@ func (m Metrics) ValidateState() error {
 	}
 
 	if m.MType == shared.GaugeType && nil == m.Value {
-		return fmt.Errorf("Validate: field value is empty:  %w", ErrRequiredFields)
+		return fmt.Errorf("validate: field value is empty:  %w", ErrRequiredFields)
 	}
 
 	if m.MType == shared.CounterType && nil == m.Delta {
-		return fmt.Errorf("Validate: field delta is empty:  %w", ErrRequiredFields)
+		return fmt.Errorf("validate: field delta is empty:  %w", ErrRequiredFields)
 	}
 
 	if nil != m.Value && nil != m.Delta {
