@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"os"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 type flags struct {
 	pushAddress       string
 	hashKey           string
+	logLevel          string
 	pollIntervalSec   int
 	reportIntervalSec int
 	rateLimit         int
@@ -29,6 +31,10 @@ func (f *flags) validate() error {
 		return fmt.Errorf("report interval must be greater than 1, current: %d", f.reportIntervalSec)
 	}
 
+	if _, err := zap.ParseAtomicLevel(f.logLevel); err != nil {
+		return fmt.Errorf("log level is not valid: %s", err)
+	}
+
 	return nil
 }
 
@@ -37,15 +43,21 @@ func parseFlags() (*flags, error) {
 
 	flag.StringVar(&f.pushAddress, "a", "localhost:8080", "push address")
 	flag.IntVar(&f.pollIntervalSec, "p", 2, "poll interval in seconds")
-	flag.IntVar(&f.reportIntervalSec, "r", 10, "report interval in seconds")
-	flag.IntVar(&f.rateLimit, "l", 1, "rate limit")
+	flag.IntVar(&f.reportIntervalSec, "r", 1, "report interval in seconds")
+	flag.IntVar(&f.rateLimit, "l", 5, "rate limit")
 	flag.StringVar(&f.hashKey, "k", "", "hash key")
+	flag.StringVar(&f.logLevel, "g", "info", "log level")
 
 	flag.Parse()
 
 	pAddr := os.Getenv("ADDRESS")
 	if pAddr != "" {
 		f.pushAddress = pAddr
+	}
+
+	envLogLevel := os.Getenv("LOG_LEVEL")
+	if envLogLevel != "" {
+		f.logLevel = envLogLevel
 	}
 
 	k := os.Getenv("KEY")

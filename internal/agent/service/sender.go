@@ -2,6 +2,8 @@ package service
 
 import (
 	"bytes"
+	"compress/flate"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
@@ -35,23 +37,21 @@ func (s MSender) SendMemStatsMetric(metrics []metrics.Metrics) error {
 		Path:   "updates/",
 	}
 
-	jsonPayload, err := json.Marshal(metrics)
+	body, err := s.makeBody(metrics)
 	if err != nil {
 		return err
 	}
 
-	hash, err := signature.Sign.Hash(jsonPayload)
-	if err != nil {
-		return fmt.Errorf("SendMemStatsMetric: can`t hash body: %s", err)
-	}
+	hash := signature.Sign.Hash(body.Bytes())
 
-	req, err := retryablehttp.NewRequest(http.MethodPost, u.String(), bytes.NewBuffer(jsonPayload))
+	req, err := retryablehttp.NewRequest(http.MethodPost, u.String(), body)
 	if err != nil {
 		return err
 	}
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Accept-Encoding", "gzip")
+	req.Header.Add("Content-Encoding", "gzip")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set(shared.HashHeaderName, hash)
 
@@ -67,4 +67,20 @@ func (s MSender) SendMemStatsMetric(metrics []metrics.Metrics) error {
 	}
 
 	return resp.Body.Close()
+}
+
+func (s MSender) makeBody(metrics []metrics.Metrics) (*bytes.Buffer, error) {
+	buf := bytes.NewBuffer(nil)
+
+	gz, _ := gzip.NewWriterLevel(buf, flate.BestCompression)
+
+	if err := json.NewEncoder(gz).Encode(&metrics); err != nil {
+		return nil, fmt.Errorf("encoding metrics: %w", err)
+	}
+
+	if err := gz.Close(); err != nil {
+		return nil, fmt.Errorf("closing gzip: %w", err)
+	}
+
+	return buf, nil
 }

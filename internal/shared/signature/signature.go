@@ -1,14 +1,14 @@
 package signature
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"io"
 )
 
 type Signature interface {
-	Hash(data []byte) (string, error)
-	Valid(hash string, data []byte) (bool, error)
+	Hash(data []byte) string
+	Valid(hash string, data []byte) bool
 }
 
 var Sign Signature
@@ -18,27 +18,24 @@ type ChekerSignature struct {
 }
 
 func Singleton(key string) {
+	if Sign != nil {
+		return
+	}
+
 	Sign = &ChekerSignature{
 		key: key,
 	}
 }
 
-func (s ChekerSignature) Hash(data []byte) (string, error) {
-	message := string(data) + s.key
-	h := sha256.New()
+func (s ChekerSignature) Hash(data []byte) string {
+	h := hmac.New(sha256.New, []byte(s.key))
+	h.Write(data)
 
-	if _, err := io.WriteString(h, message); err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (s ChekerSignature) Valid(hash string, data []byte) (bool, error) {
-	calculatedHash, err := s.Hash(data)
-	if err != nil {
-		return false, fmt.Errorf("valid: An error occurred while validating the signature")
-	}
+func (s ChekerSignature) Valid(hash string, data []byte) bool {
+	calculatedHash := s.Hash(data)
 
-	return calculatedHash == hash, nil
+	return calculatedHash == hash
 }

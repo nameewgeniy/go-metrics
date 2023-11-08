@@ -18,7 +18,7 @@ build.agent:
 	@go build -o cmd/agent/agent cmd/agent/*.go
 
 test.get:
-	@wget https://github.com/Yandex-Practicum/go-autotests/releases/download/v0.10.1/metricstest
+	@wget https://github.com/Yandex-Practicum/go-autotests/releases/download/v0.10.2/metricstest
 	@chmod +x metricstest
 
 test.all: build.all

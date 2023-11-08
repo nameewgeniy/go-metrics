@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	"go-metrics/internal/shared/metrics"
 	"testing"
@@ -20,12 +21,12 @@ func TestPush(t *testing.T) {
 	mockSender := &MockMetricsSender{}
 	runtimeMetrics := NewRuntimeMetrics(mockSender)
 
-	runtimeMetrics.Push()
+	runtimeMetrics.Push(context.Background())
 
 	// Allow some time for the goroutines to execute and send metrics
 	time.Sleep(time.Second)
 
-	expectedMetrics := runtimeMetrics.MetricsTracked()
+	expectedMetrics := runtimeMetrics.metricsTracked()
 
 	for _, v := range expectedMetrics {
 		for _, i := range mockSender.sentMetrics {

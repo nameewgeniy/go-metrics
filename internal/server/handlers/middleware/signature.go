@@ -25,19 +25,13 @@ func CheckSignature(next http.HandlerFunc) http.HandlerFunc {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		defer r.Body.Close()
 
-		ok, err := signature.Sign.Valid(hash, body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if !ok {
-			http.Error(w, ErrHashNotValid.Error(), http.StatusInternalServerError)
+		if !signature.Sign.Valid(hash, body) {
+			http.Error(w, ErrHashNotValid.Error(), http.StatusBadRequest)
 			return
 		}
 
