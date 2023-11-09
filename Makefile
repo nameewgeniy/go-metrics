@@ -18,7 +18,7 @@ build.agent:
 	@go build -o cmd/agent/agent cmd/agent/*.go
 
 test.get:
-	@wget https://github.com/Yandex-Practicum/go-autotests/releases/download/v0.10.1/metricstest
+	@wget https://github.com/Yandex-Practicum/go-autotests/releases/download/v0.10.2/metricstest
 	@chmod +x metricstest
 
 test.all: build.all
@@ -32,15 +32,20 @@ test.i: build.all
 		-agent-binary-path=cmd/agent/agent  \
 		-database-dsn='postgres://user:password@localhost:5442/db?sslmode=disable' \
 		-binary-path=cmd/server/server \
-		-test.run=^TestIteration$(i)[AB]*$
+		-test.run=^TestIteration$(i)[AB]*$ \
+		-key="test"
 
-# make test.i i=1
+# make test.i.all
 test.i.all: build.all
 	@metricstest -test.v -server-port=8080 \
 		-source-path=. -file-storage-path=/home/work/go/src/go-metrics/tmp/metrics-db.json \
 		-agent-binary-path=cmd/agent/agent  \
 		-database-dsn='postgres://user:password@localhost:5442/db?sslmode=disable' \
-		-binary-path=cmd/server/server
+		-binary-path=cmd/server/server \
+		-key="test"
+
+test.race: build.all
+	@go test -v -race ./...
 
 db.up:
 	@docker-compose -f build/docker-compose.yaml up -d

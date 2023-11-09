@@ -18,8 +18,14 @@ func CompressMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+		gz, err := gzip.NewWriterLevel(w, gzip.BestCompression)
 		if err != nil {
+
+			if err == io.EOF {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			io.WriteString(w, err.Error())
 			return
 		}

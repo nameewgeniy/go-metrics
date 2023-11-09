@@ -6,6 +6,8 @@ import (
 	"go-metrics/internal/agent"
 	"go-metrics/internal/agent/conf"
 	"go-metrics/internal/agent/service"
+	"go-metrics/internal/shared/logger"
+	"go-metrics/internal/shared/signature"
 	"log"
 	"os"
 	"os/signal"
@@ -25,11 +27,17 @@ func run() error {
 		return err
 	}
 
+	if err = logger.Singleton("info"); err != nil {
+		return err
+	}
+
+	signature.Singleton(f.hashKey)
+
 	scf := conf.NewSenderConfig(f.pushAddress)
 	snd := service.NewMetricSender(scf)
 	rm := service.NewRuntimeMetrics(snd)
 
-	cf := conf.NewAgentConf(f.pollIntervalSec, f.reportIntervalSec)
+	cf := conf.NewAgentConf(f.pollIntervalSec, f.reportIntervalSec, f.rateLimit)
 	a := agent.NewAgent(cf, rm)
 
 	ctx, cancel := context.WithCancel(context.Background())

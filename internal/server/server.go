@@ -94,17 +94,47 @@ func (s Server) Run() error {
 func (s Server) listen(ctx context.Context) error {
 
 	r := mux.NewRouter()
-	r.Handle("/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.ViewMetricsHandle))).Methods(http.MethodGet)
+	r.Handle("/", middleware.CompressMiddleware(middleware.RequestLogger(s.h.ViewMetricsHandle))).Methods(http.MethodGet)
+	r.Handle("/ping", middleware.RequestLogger(s.h.PingHandle)).Methods(http.MethodGet)
+	r.Handle("/value/{type}/{name}", middleware.CompressMiddleware(middleware.RequestLogger(s.h.GetMetricsHandle))).Methods(http.MethodGet)
 
-	r.Handle("/update/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsJSONHandle))).Methods(http.MethodPost, http.MethodOptions)
-	r.Handle("/value/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsJSONHandle))).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/update/",
+		middleware.CheckSignature(
+			middleware.UnCompressMiddleware(
+				middleware.CompressMiddleware(
+					middleware.RequestLogger(
+						s.h.UpdateMetricsJSONHandle,
+					),
+				),
+			),
+		),
+	).Methods(http.MethodPost)
 
-	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateMetricsHandle))).Methods(http.MethodPost, http.MethodOptions)
-	r.Handle("/value/{type}/{name}", middleware.RequestLogger(middleware.CompressMiddleware(s.h.GetMetricsHandle))).Methods(http.MethodGet)
+	r.Handle("/value/",
+		middleware.CheckSignature(
+			middleware.UnCompressMiddleware(
+				middleware.CompressMiddleware(
+					middleware.RequestLogger(
+						s.h.GetMetricsJSONHandle,
+					),
+				),
+			),
+		),
+	).Methods(http.MethodPost)
 
-	r.Handle("/ping", middleware.RequestLogger(middleware.CompressMiddleware(s.h.PingHandle))).Methods(http.MethodGet)
+	r.Handle("/update/{type}/{name}/{value}", middleware.RequestLogger(s.h.UpdateMetricsHandle)).Methods(http.MethodPost)
 
-	r.Handle("/updates/", middleware.RequestLogger(middleware.CompressMiddleware(s.h.UpdateBatchMetricsHandle))).Methods(http.MethodPost)
+	r.Handle("/updates/",
+		middleware.CheckSignature(
+			middleware.UnCompressMiddleware(
+				middleware.CompressMiddleware(
+					middleware.RequestLogger(
+						s.h.UpdateBatchMetricsHandle,
+					),
+				),
+			),
+		),
+	).Methods(http.MethodPost)
 
 	srv := &http.Server{
 		Handler:      r,

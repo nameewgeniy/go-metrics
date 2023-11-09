@@ -18,6 +18,7 @@ type flags struct {
 	restore         bool
 	databaseDsn     string
 	downMigrations  bool
+	hashKey         string
 }
 
 func (f *flags) validate() error {
@@ -30,7 +31,7 @@ func (f *flags) validate() error {
 	}
 
 	if err := writeFileTest(filepath.Dir(f.fileStoragePath)); err != nil {
-		return err
+		return fmt.Errorf("can`t write file: %s", err)
 	}
 
 	return nil
@@ -43,6 +44,7 @@ func parseFlags() (*flags, error) {
 	flag.StringVar(&f.logLevel, "l", "info", "log level")
 	flag.StringVar(&f.fileStoragePath, "f", "/tmp/metrics-db.json", "file storage path")
 	flag.StringVar(&f.databaseDsn, "d", "", "database dsn")
+	flag.StringVar(&f.hashKey, "k", "", "hash key")
 	flag.IntVar(&f.storeInterval, "i", 300, "store interval")
 	flag.BoolVar(&f.restore, "r", true, "restore")
 	flag.BoolVar(&f.downMigrations, "dm", true, "down migrations after stop")
@@ -51,6 +53,11 @@ func parseFlags() (*flags, error) {
 	envAddr := os.Getenv("ADDRESS")
 	if envAddr != "" {
 		f.addr = envAddr
+	}
+
+	envHashKey := os.Getenv("KEY")
+	if envHashKey != "" {
+		f.hashKey = envHashKey
 	}
 
 	envLogLevel := os.Getenv("LOG_LEVEL")
